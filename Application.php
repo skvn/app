@@ -23,20 +23,22 @@ class Application extends Container
 
     function run()
     {
+        $data = ['app' => $this];
         try
         {
-            $this->events->trigger(new Events\CreateEnv());
-            $this->events->trigger(new Events\SessionStart());
-            $this->events->trigger(new Events\Preroute());
-            $this->events->trigger(new Events\Route());
-            $this->events->trigger(new Events\Execute());
-            $this->events->trigger(new Events\Render());
+            $this->events->trigger(new Events\Bootstrap($data));
+            $this->events->trigger(new Events\CreateEnv($data));
+            $this->events->trigger(new Events\SessionStart($data));
+            $this->events->trigger(new Events\Preroute($data));
+            $this->events->trigger(new Events\Route($data));
+            $this->events->trigger(new Events\Execute($data));
+            $this->events->trigger(new Events\Render($data));
         }
         catch (\Exception $e)
         {
-            $this->events->trigger(new Events\Exception(['exception' => $e]));
+            $this->events->trigger(new Events\Exception(['exception' => $e, 'app' => $this]));
         }
-        $this->events->trigger(new Events\Shutdown());
+        $this->events->trigger(new Events\Shutdown($data));
     }
 
     function registerPath($name, $path)

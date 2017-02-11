@@ -2,9 +2,8 @@
 
 namespace Skvn\App\Events;
 
-use Skvn\Event\Event as BaseEvent;
 
-class CreateEnv extends BaseEvent
+class CreateEnv extends AppEvent
 {
 
 }
