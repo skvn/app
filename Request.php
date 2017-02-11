@@ -102,9 +102,19 @@ class Request
         return $this->arguments[$name] ?? null;
     }
 
+    function getArguments()
+    {
+        return $this->arguments;
+    }
+
     function getOption($name)
     {
         return $this->options[$name] ?? null;
+    }
+
+    function getOptions()
+    {
+        return $this->options;
     }
 
     function getServer($var)

@@ -10,6 +10,7 @@ use Skvn\Event\Event as BaseEvent;
  * @package Skvn\App\Events
  *
  * @property \Skvn\App\Application $app
+ * @property \Exception $exception
  */
 class AppEvent extends BaseEvent
 {
