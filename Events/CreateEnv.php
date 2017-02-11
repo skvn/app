@@ -1,6 +1,6 @@
 <?php
 
-namespace Skvn\App\Events\App;
+namespace Skvn\App\Events;
 
 use Skvn\Event\Event as BaseEvent;
 
