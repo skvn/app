@@ -19,6 +19,8 @@ class Application extends Container
         $this->rootPath = $path;
         $this->alias('config', new Config());
         $this->alias('events', new EventDispatcher());
+        $this->registerPath('var', 'var');
+        $this->registerPath('locks', 'var/locks');
     }
 
     function run()

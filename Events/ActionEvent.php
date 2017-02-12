@@ -6,6 +6,7 @@ use Skvn\Event\Event as BaseEvent;
 use Skvn\Event\Contracts\SelfHandlingEvent;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\NotFoundException;
+use Skvn\Base\Traits\ConsoleOutput;
 
 
 /**
@@ -17,6 +18,8 @@ use Skvn\Base\Exceptions\NotFoundException;
  */
 abstract class ActionEvent extends BaseEvent implements SelfHandlingEvent
 {
+    use ConsoleOutput;
+
     function handle()
     {
         $action = 'action' . Str :: studly($this->action);
