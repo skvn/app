@@ -81,7 +81,7 @@ class Application extends Container
 
     function triggerEvent(Event $event)
     {
-        $this->events->trigger($event);
+        return $this->events->trigger($event);
     }
 
     function checkMode($modes)
