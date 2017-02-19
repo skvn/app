@@ -7,20 +7,40 @@ use Skvn\Base\Config;
 use Skvn\Event\EventDispatcher;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\NotFoundException;
+use Skvn\Event\Contracts\Event;
 
 class Application extends Container
 {
     protected $rootPath;
     protected $pathAliases = [];
+    protected $appMode = null;
 
-    function __construct($path)
+
+    function init($path, $mode = null)
     {
-        parent :: __construct();
         $this->rootPath = $path;
+        chdir($this->rootPath);
+        if (is_null($mode)) {
+            $mode = php_sapi_name() == "cli" ? "cli" : "web";
+        }
+        $this->appMode = $mode;
+
+        $this->alias('app', $this);
         $this->alias('config', new Config());
         $this->alias('events', new EventDispatcher());
-        $this->registerPath('var', 'var');
-        $this->registerPath('locks', 'var/locks');
+        $this->initApp();
+        $this->bindAppEvents();
+
+    }
+
+    function initApp()
+    {
+
+    }
+
+    function bindAppEvents()
+    {
+
     }
 
     function run()
@@ -41,6 +61,64 @@ class Application extends Container
             $this->events->trigger(new Events\Exception(['exception' => $e, 'app' => $this]));
         }
         $this->events->trigger(new Events\Shutdown($data));
+    }
+
+    function bindEvent($event, $handler, $modes = null, $prepend = false)
+    {
+        if (!$this->checkMode($modes))
+        {
+            return;
+        }
+
+        if (is_string($handler) && strpos($handler, '/') !== false && strpos($handler, '@') !== false)
+        {
+            list($class, $method) = explode('@', $handler);
+            $classname = basename($class);
+            $handler = $classname . '@' . $method;
+        }
+        return $this->events->listen($event, $handler, $prepend);
+    }
+
+    function triggerEvent(Event $event)
+    {
+        $this->events->trigger($event);
+    }
+
+    function checkMode($modes)
+    {
+        if (is_null($modes) || $modes == '*') {
+            return true;
+        }
+        $modes = (array) $modes;
+        $has_allow = false;
+        foreach ($modes as $m) {
+            if (("!" . $this->appMode) == $m) {
+                return false;
+            }
+            if (strpos($m, '!') === false) {
+                $has_allow = true;
+            }
+            if ($m == $this->appMode) {
+                return true;
+            }
+        }
+        if ($has_allow)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    function createFacade($target, $alias)
+    {
+        $code = 'class ' . $alias . ' extends \\Skvn\\Base\\Facade {protected static function getFacadeTarget() {return "' . $target . '";}}';
+        eval($code);
+        //$this->registerAlias('\\Facades\\' . $alias, $alias);
+    }
+
+    function registerClassAlias($class, $alias)
+    {
+        class_alias($class, '\\' . $alias);
     }
 
     function registerPath($name, $path)
@@ -66,6 +144,11 @@ class Application extends Container
             $path = str_replace($alias, $this->pathAliases[$alias], $path);
         }
         return $path;
+    }
+
+    function getMode()
+    {
+        return $this->appMode;
     }
 
 
