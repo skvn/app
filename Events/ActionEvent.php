@@ -6,7 +6,7 @@ use Skvn\Event\Event as BaseEvent;
 use Skvn\Event\Contracts\SelfHandlingEvent;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\NotFoundException;
-use Skvn\Base\Traits\ConsoleOutput;
+use Skvn\Base\Exceptions\ImplementationException;
 
 
 /**
@@ -18,11 +18,18 @@ use Skvn\Base\Traits\ConsoleOutput;
  */
 abstract class ActionEvent extends BaseEvent implements SelfHandlingEvent
 {
-    use ConsoleOutput;
+
+    protected $request;
+    protected $defaultAction = null;
 
     function handle()
     {
-        $action = 'action' . Str :: studly($this->action);
+        $this->request = $this->app->request;
+        $actionName = !empty($this->action) ? $this->action : $this->defaultAction;
+        if (empty($actionName)) {
+            throw new ImplementationException('Action not defined for command ' . get_class($this));
+        }
+        $action = 'action' . Str :: studly($actionName);
         if (method_exists($this, $action)) {
             if ($this->beforeAction() === false) {
                 return false;
@@ -30,7 +37,7 @@ abstract class ActionEvent extends BaseEvent implements SelfHandlingEvent
             $result =  $this->$action();
             return $this->afterAction($result);
         } else {
-            throw new NotFoundException('Action ' . $this->action . ' not found at ' . get_class($this));
+            throw new NotFoundException('Action ' . $actionName . ' not found at ' . get_class($this));
         }
     }
 

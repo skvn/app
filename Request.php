@@ -35,29 +35,31 @@ class Request
             array_shift($args);
             while (count($args) > 0) {
                 $arg = array_shift($args);
-                if (Str :: pos('--', $arg) === 0) {
-                    $arg = substr($arg, 2);
-                    $scope = 'options';
-                } elseif (Str :: pos('-', $arg) === 0) {
-                    $arg = substr($arg, 1);
-                    $scope = 'options';
-                } else {
-                    $scope = 'arguments';
-                }
-                if (Str :: pos('=', $arg) !== false) {
-                    list($k, $v) = explode('=', $arg);
-                } else {
-                    list($k, $v) = [$arg, true];
-                }
-                if (array_key_exists($k, $this->$scope)) {
-                    if (is_array($this->$scope[$k])) {
-                        array_push($this->$scope[$k], $v);
-                    } else {
-                        $this->$scope[$k] = [$this->$scope[$k], $v];
+                if (Str :: pos('-', $arg) === 0 || Str :: pos('=', $arg) !== false) {
+                    if (Str :: pos('--', $arg) === 0) {
+                        $arg = substr($arg, 2);
+                    } elseif (Str :: pos('-', $arg) === 0) {
+                        $arg = substr($arg, 1);
                     }
+                    if (Str :: pos('=', $arg) !== false) {
+                        list($k, $v) = explode('=', $arg);
+                    } else {
+                        list($k, $v) = [$arg, true];
+                    }
+                    if (array_key_exists($k, $this->options)) {
+                        if (is_array($this->options[$k])) {
+                            array_push($this->options[$k], $v);
+                        } else {
+                            $this->options[$k] = [$this->options[$k], $v];
+                        }
+                    } else {
+                        $this->options[$k] = $v;
+                    }
+
                 } else {
-                    $this->$scope[$k] = $v;
+                    $this->arguments[] = $arg;
                 }
+
             }
         }
     }
