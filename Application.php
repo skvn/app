@@ -8,12 +8,14 @@ use Skvn\Event\EventDispatcher;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\NotFoundException;
 use Skvn\Event\Contracts\Event;
+use Skvn\Base\Helpers\File;
 
 class Application extends Container
 {
     protected $rootPath;
     protected $pathAliases = [];
     protected $appMode = null;
+    protected $commandNamespaces = ['\\Skvn\\App\\Console' => __DIR__ . DIRECTORY_SEPARATOR . 'Console'];
 
 
     function init($path, $mode = null)
@@ -150,6 +152,50 @@ class Application extends Container
     {
         return $this->appMode;
     }
+
+    function registerCommandNamespace($namespace, $path)
+    {
+        $this->commandNamespaces[$namespace] = $path;
+        return $this;
+    }
+
+    function createCommand($command, $args = [])
+    {
+        if (Str :: pos('/', $command) !== false) {
+            list($controller, $action) = explode('/', $command);
+        } else
+        {
+            list($controller, $action) = [$command, null];
+        }
+        foreach ($this->commandNamespaces as $ns => $path) {
+            $class = $ns . '\\' . Str :: studly($controller);
+            if (class_exists($class)) {
+                $args['action'] = $action;
+                return new $class($args);
+            }
+        }
+        return false;
+
+    }
+
+    function getAvailableCommands()
+    {
+        $commands = [];
+        foreach ($this->commandNamespaces as $ns => $path) {
+            $files = File :: ls($path);
+            foreach ($files as $file) {
+                $class = preg_replace('#^' . $path . DIRECTORY_SEPARATOR . '#', '', $file);
+                $class = preg_replace('#\.php$#', '', $class);
+                $class = $ns . '\\' . $class;
+                $command = new $class();
+                $commands[Str :: snake(Str :: classBasename(get_class($command)))] = $command;
+            }
+        }
+        ksort($commands);
+        return $commands;
+    }
+
+
 
 
 

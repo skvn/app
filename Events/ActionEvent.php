@@ -50,4 +50,9 @@ abstract class ActionEvent extends BaseEvent implements SelfHandlingEvent
     {
         return $data;
     }
+
+    function getDefaultAction()
+    {
+        return $this->defaultAction;
+    }
 }
