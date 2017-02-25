@@ -24,4 +24,9 @@ class ConsoleActionEvent extends ActionEvent
         )));
     }
 
+    function getCommandName()
+    {
+        return Str :: snake(Str :: classBasename(get_class($this)));
+    }
+
 }

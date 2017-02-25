@@ -188,7 +188,7 @@ class Application extends Container
                 $class = preg_replace('#\.php$#', '', $class);
                 $class = $ns . '\\' . $class;
                 $command = new $class();
-                $commands[Str :: snake(Str :: classBasename(get_class($command)))] = $command;
+                $commands[$command->getCommandName()] = $command;
             }
         }
         ksort($commands);
