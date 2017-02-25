@@ -15,7 +15,9 @@ class Application extends Container
     protected $rootPath;
     protected $pathAliases = [];
     protected $appMode = null;
-    protected $commandNamespaces = ['\\Skvn\\App\\Console' => __DIR__ . DIRECTORY_SEPARATOR . 'Console'];
+    protected $commandNamespaces = [
+        '\\Skvn\\App\\Console' => __DIR__ . DIRECTORY_SEPARATOR . 'Console'
+    ];
 
 
     function init($path, $mode = null)

@@ -11,6 +11,8 @@ class Session implements \ArrayAccess
     use CastedProps;
     use ArrayOrObjectAccessImpl;
 
+    public $started = false;
+
     function get($key)
     {
         return $_SESSION[$key] ?? null;
@@ -34,6 +36,7 @@ class Session implements \ArrayAccess
     function start()
     {
         session_start();
+        $this->started = true;
     }
 
     function clear()
