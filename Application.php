@@ -18,6 +18,7 @@ class Application extends Container
     protected $commandNamespaces = [
         '\\Skvn\\App\\Console' => __DIR__ . DIRECTORY_SEPARATOR . 'Console'
     ];
+    protected $services = [];
 
 
     function init($path, $mode = null)
@@ -30,8 +31,8 @@ class Application extends Container
         $this->appMode = $mode;
 
         $this->alias('app', $this);
-        $this->alias('config', new Config());
-        $this->alias('events', new EventDispatcher());
+        //$this->alias('config', new Config());
+        //$this->alias('events', new EventDispatcher());
         $this->initApp();
         $this->bindAppEvents();
 
@@ -52,19 +53,19 @@ class Application extends Container
         $data = ['app' => $this];
         try
         {
-            $this->events->trigger(new Events\Bootstrap($data));
-            $this->events->trigger(new Events\CreateEnv($data));
-            $this->events->trigger(new Events\SessionStart($data));
-            $this->events->trigger(new Events\Preroute($data));
-            $this->events->trigger(new Events\Route($data));
-            $this->events->trigger(new Events\Execute($data));
-            $this->events->trigger(new Events\Render($data));
+            $this->triggerEvent(new Events\Bootstrap($data));
+            $this->triggerEvent(new Events\CreateEnv($data));
+            $this->triggerEvent(new Events\SessionStart($data));
+            $this->triggerEvent(new Events\Preroute($data));
+            $this->triggerEvent(new Events\Route($data));
+            $this->triggerEvent(new Events\Execute($data));
+            $this->triggerEvent(new Events\Render($data));
         }
         catch (\Exception $e)
         {
-            $this->events->trigger(new Events\Exception(['exception' => $e, 'app' => $this]));
+            $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
         }
-        $this->events->trigger(new Events\Shutdown($data));
+        $this->triggerEvent(new Events\Shutdown($data));
     }
 
     function bindEvent($event, $handler, $modes = null, $prepend = false)
@@ -82,6 +83,15 @@ class Application extends Container
         }
         return $this->events->listen($event, $handler, $prepend);
     }
+
+    function get($alias)
+    {
+        if (!isset($this->aliases[$alias])) {
+            return $this->getAppService($alias);
+        }
+        return $this->aliases[$alias];
+    }
+
 
     function triggerEvent(Event $event)
     {
@@ -196,6 +206,51 @@ class Application extends Container
         ksort($commands);
         return $commands;
     }
+
+    function getAppServices()
+    {
+        return array_merge([
+            'config' => \Skvn\Base\Config :: class,
+            'events' => \Skvn\Event\EventDispatcher :: class,
+            'request' => \Skvn\App\Request :: class,
+            'response' => \Skvn\App\Response :: class,
+            'session' => \Skvn\App\Session :: class,
+            'queue' => \Skvn\Event\QueueDispatcher :: class
+        ], $this->services);
+    }
+
+    function getAppService($service)
+    {
+        $services = $this->getAppServices();
+        if (array_key_exists($service, $services)) {
+            if (is_array($services[$service])) {
+                $class = $services[$service]['class'];
+                $obj = new $class($services[$service]);
+            } else {
+                $class = $services[$service];
+                $obj = new $class();
+            }
+            $this->alias($service, $obj);
+            return $obj;
+        }
+        throw new NotFoundException('Service ' . $service . ' not found');
+    }
+
+    function getAppAliases()
+    {
+        return [
+            'App' => Facades\App :: class,
+            //'Config' => Facades\Config :: class,
+            'Queue' => Facades\Queue :: class,
+            'Events' => Facades\Events :: class,
+            'Request' => Facades\Request :: class,
+            'Response' => Facades\Response :: class,
+            'Session' => Facades\Session :: class,
+            'DB' => Facades\DB :: class,
+        ];
+    }
+
+
 
 
 
