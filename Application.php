@@ -135,6 +135,13 @@ class Application extends Container
         class_alias($class, '\\' . $alias);
     }
 
+    function registerFacades()
+    {
+        foreach (array_merge($this->getAppFacades(), $this->config['app.facades'] ?? []) as $alias => $class) {
+            $this->registerClassAlias($class, $alias);
+        }
+    }
+
     function registerPath($name, $path)
     {
         if (Str :: pos(DIRECTORY_SEPARATOR, $path) !== 0) {
@@ -145,6 +152,13 @@ class Application extends Container
         }
         $this->pathAliases[$name] = $path;
         return $path;
+    }
+
+    function registerPaths()
+    {
+        foreach ($this->config['app.paths'] as $alias => $path) {
+            $this->registerPath($alias, $path);
+        }
     }
 
     function getPath($path)
@@ -215,7 +229,6 @@ class Application extends Container
             'request' => \Skvn\App\Request :: class,
             'response' => \Skvn\App\Response :: class,
             'session' => \Skvn\App\Session :: class,
-            'queue' => \Skvn\Event\QueueDispatcher :: class
         ], $this->services);
     }
 
@@ -223,12 +236,17 @@ class Application extends Container
     {
         $services = $this->getAppServices();
         if (array_key_exists($service, $services)) {
-            if (is_array($services[$service])) {
-                $class = $services[$service]['class'];
-                $obj = new $class($services[$service]);
+            if (is_string($services[$service]) && Str :: pos('.', $services[$service])) {
+                list($factoryName, $serviceName) = explode('.', $services[$service]);
+                $obj = $this->$factoryName->$serviceName;
             } else {
-                $class = $services[$service];
-                $obj = new $class();
+                if (is_array($services[$service])) {
+                    $class = $services[$service]['class'];
+                    $obj = new $class($services[$service]);
+                } else {
+                    $class = $services[$service];
+                    $obj = new $class();
+                }
             }
             $this->alias($service, $obj);
             return $obj;
@@ -236,7 +254,7 @@ class Application extends Container
         throw new NotFoundException('Service ' . $service . ' not found');
     }
 
-    function getAppAliases()
+    function getAppFacades()
     {
         return [
             'App' => Facades\App :: class,
