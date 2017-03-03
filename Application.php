@@ -31,8 +31,6 @@ class Application extends Container
         $this->appMode = $mode;
 
         $this->alias('app', $this);
-        //$this->alias('config', new Config());
-        //$this->alias('events', new EventDispatcher());
         $this->initApp();
         $this->bindAppEvents();
 
@@ -229,6 +227,7 @@ class Application extends Container
             'request' => \Skvn\App\Request :: class,
             'response' => \Skvn\App\Response :: class,
             'session' => \Skvn\App\Session :: class,
+            'router' => \Skvn\App\Router :: class,
         ], $this->services);
     }
 
