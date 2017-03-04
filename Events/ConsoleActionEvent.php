@@ -4,6 +4,7 @@ namespace Skvn\App\Events;
 
 use Skvn\Base\Traits\ConsoleOutput;
 use Skvn\Base\Helpers\Str;
+use Skvn\Base\Exceptions\InvalidArgumentException;
 
 class ConsoleActionEvent extends ActionEvent
 {
@@ -27,6 +28,24 @@ class ConsoleActionEvent extends ActionEvent
     function getCommandName()
     {
         return Str :: snake(Str :: classBasename(get_class($this)));
+    }
+
+    function validateParams()
+    {
+        $info = $this->describeActions();
+        $required = 0;
+        if (isset($info[$this->action]['tags']['argument'])) {
+            $args = (array) $info[$this->action]['tags']['argument'];
+            foreach ($args as $arg) {
+                if (Str :: pos('*', $arg) === 0) {
+                    $required++;
+                }
+            }
+        }
+        if ($required > 0 && count($this->arguments) < $required) {
+            throw new InvalidArgumentException('Not enough arguments for command');
+        }
+        return true;
     }
 
 }

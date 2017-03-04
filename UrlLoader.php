@@ -6,6 +6,7 @@ use Skvn\Base\Helpers\Curl;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\CurlException;
 use Skvn\Base\Traits\AppHolder;
+use Skvn\Event\Events\Log as LogEvent;
 
 class UrlLoader
 {
@@ -24,13 +25,13 @@ class UrlLoader
             $curlParams[constant('CURLOPT_' . strtoupper($pname))] = $pvalue;
         }
         $result = Curl :: fetch($url, $curlParams);
-        \App :: triggerEvent(new Events\Log([
+        \App :: triggerEvent(new LogEvent([
             'message' => $url . ' loaded (' . strlen($result['response']) . ') in ' . $result['time'],
             'category' => 'debug/curl_load',
             'info' => $result
         ]));
         if ($result['error_num'] > 0 || $result['code'] != 200) {
-            \App :: triggerEvent(new Events\Log([
+            \App :: triggerEvent(new LogEvent([
                 'message' => $url . ' load failed',
                 'category' => 'debug/curl_fail',
                 'info' => $result

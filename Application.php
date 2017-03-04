@@ -16,7 +16,8 @@ class Application extends Container
     protected $pathAliases = [];
     protected $appMode = null;
     protected $commandNamespaces = [
-        '\\Skvn\\App\\Console' => __DIR__ . DIRECTORY_SEPARATOR . 'Console'
+        '\\Skvn\\App\\Console' => __DIR__ . '/Console',
+        '\\Skvn\\Event\\Console' => __DIR__ . '/../event/Console',
     ];
     protected $services = [];
 
@@ -61,7 +62,10 @@ class Application extends Container
         }
         catch (\Exception $e)
         {
-            $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
+            $result = $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
+            if ($result === false) {
+                throw $e;
+            }
         }
         $this->triggerEvent(new Events\Shutdown($data));
     }
@@ -206,7 +210,9 @@ class Application extends Container
     {
         $commands = [];
         foreach ($this->commandNamespaces as $ns => $path) {
+            var_dump($path);
             $files = File :: ls($path);
+            var_dump($files);
             foreach ($files as $file) {
                 $class = preg_replace('#^' . $path . DIRECTORY_SEPARATOR . '#', '', $file);
                 $class = preg_replace('#\.php$#', '', $class);

@@ -55,4 +55,9 @@ abstract class ActionEvent extends BaseEvent implements SelfHandlingEvent
     {
         return $this->defaultAction;
     }
+
+    function validateParams()
+    {
+        return true;
+    }
 }
