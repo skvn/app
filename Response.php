@@ -3,9 +3,12 @@
 namespace Skvn\App;
 
 use Skvn\Base\Container;
+use Skvn\Base\Traits\AppHolder;
 
 class Response
 {
+    use AppHolder;
+
     public $format = "html";
     public $content;
     protected $headers = [];
@@ -32,7 +35,7 @@ class Response
 
     function setCookie($name, $value, $expires=0, $args = [])
     {
-        $domain = Container :: getInstance()->config->get('core.domain');
+        $domain = $this->app->config->get('core.domain');
         setcookie(  $name,
             $value,
             $expires ? time() + $expires * 24 * 3600 : 0,

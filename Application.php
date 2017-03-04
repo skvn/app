@@ -228,6 +228,7 @@ class Application extends Container
             'response' => \Skvn\App\Response :: class,
             'session' => \Skvn\App\Session :: class,
             'router' => \Skvn\App\Router :: class,
+            'urlLoader' => \Skvn\App\UrlLoader :: class
         ], $this->services);
     }
 
@@ -247,6 +248,7 @@ class Application extends Container
                     $obj = new $class();
                 }
             }
+            $obj->setApp($this);
             $this->alias($service, $obj);
             return $obj;
         }

@@ -4,10 +4,13 @@ namespace Skvn\App;
 
 use Skvn\Base\Traits\CastedProps;
 use Skvn\Base\Helpers\Str;
+use Skvn\Base\Traits\AppHolder;
+
 
 class Request
 {
     use CastedProps;
+    use AppHolder;
 
     protected $get = [];
     protected $post = [];
@@ -158,6 +161,25 @@ class Request
     {
         return $this->getServer('REQUEST_URI');
     }
+
+    function getFile($name)
+    {
+        if (isset($this->request[$name])) {
+            if (Str :: pos('url', $name) !== false) {
+                return UploadedFile :: createUrl($this->app, $this->request[$name]);
+            } else {
+                return UploadedFile :: createXhr($this->app, $this->request[$name]);
+            }
+        }
+        if (isset($this->files[$name])) {
+            return UploadedFile :: createMultipart($this->app, $this->files[$name]);
+        }
+
+        $obj = new UploadedFile();
+        $obj->setApp($this->app);
+        return $obj;
+    }
+
 
 
 

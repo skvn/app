@@ -1,8 +1,14 @@
 <?php
 namespace Skvn\App;
 
+use Skvn\Base\Traits\AppHolder;
+
+
 class Router
 {
+    use AppHolder;
+
+
     protected $routes = array();
     protected $host_routes = array();
     protected $routed = array();
@@ -38,17 +44,17 @@ class Router
         return $this;
     }
 
-    function run(Application $app)
+    function run()
     {
         foreach ($this->routes as $route)
         {
-            if ($route['method'] != '*' && $route['method'] != $app->request->getRequestMethod())
+            if ($route['method'] != '*' && $route['method'] != $this->app->request->getRequestMethod())
             {
                 continue;
             }
             if (is_callable($route['rule']))
             {
-                $routed = call_user_func($route['rule'], $app);
+                $routed = call_user_func($route['rule'], $this->app);
                 if ($routed !== false)
                 {
                     $this->routed = array_merge($route['defaults'], $routed);
@@ -58,7 +64,7 @@ class Router
             elseif (is_string($route['rule']))
             {
                 $compiled = $this->compileRule($route['rule']);
-                $routed = $this->checkRule($compiled, $app->request->getRawUrl());
+                $routed = $this->checkRule($compiled, $this->app->request->getRawUrl());
                 if ($routed !== false)
                 {
                     $this->routed = array_merge($route['defaults'], $routed);
@@ -71,7 +77,7 @@ class Router
         {
             if (is_callable($route['rule']))
             {
-                $routed = call_user_func($route['rule'], $app);
+                $routed = call_user_func($route['rule'], $this->app);
                 if ($routed !== false)
                 {
                     $this->routed = array_merge($this->routed, $routed);

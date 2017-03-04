@@ -4,12 +4,15 @@ namespace Skvn\App;
 
 use Skvn\Base\Traits\CastedProps;
 use Skvn\Base\Traits\ArrayOrObjectAccessImpl;
+use Skvn\Base\Traits\AppHolder;
+
 
 class Session implements \ArrayAccess
 {
 
     use CastedProps;
     use ArrayOrObjectAccessImpl;
+    use AppHolder;
 
     public $started = false;
 
