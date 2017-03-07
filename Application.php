@@ -32,6 +32,7 @@ class Application extends Container
         $this->appMode = $mode;
 
         $this->alias('app', $this);
+        $this->pathAliases['@root'] = $this->rootPath;
         $this->initApp();
         $this->bindAppEvents();
 
