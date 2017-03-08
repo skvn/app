@@ -37,13 +37,22 @@ class ConsoleActionEvent extends ActionEvent
         if (isset($info[$this->action]['tags']['argument'])) {
             $args = (array) $info[$this->action]['tags']['argument'];
             foreach ($args as $arg) {
-                if (Str :: pos('*', $arg) === 0) {
+                list($type, $name, $desc) = explode(' ', $arg);
+                if (Str :: pos('*', $name) === 0) {
                     $required++;
                 }
             }
         }
         if ($required > 0 && count($this->arguments) < $required) {
             throw new InvalidArgumentException('Not enough arguments for command');
+        }
+        foreach ((array) ($info[$this->action]['tags']['option'] ?? []) as $opt) {
+            list($type, $name, $desc) = explode(' ', $opt);
+            if (Str :: pos('*', $name) === 0) {
+                if (!isset($this->options[substr($name, 1)])) {
+                    throw new InvalidArgumentException('Option ' . substr($name, 1) . ' is required');
+                }
+            }
         }
         return true;
     }

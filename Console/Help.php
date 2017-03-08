@@ -97,7 +97,7 @@ class Help extends ConsoleActionEvent
 
     protected function processParam($param, $prefix = "")
     {
-        list($name, $type, $desc) = explode(' ', $param, 3);
+        list($type, $name, $desc) = explode(' ', $param, 3);
         $required = '';
         $default = '';
         if (Str :: pos('*', $name) === 0) {

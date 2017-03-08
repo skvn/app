@@ -211,9 +211,7 @@ class Application extends Container
     {
         $commands = [];
         foreach ($this->commandNamespaces as $ns => $path) {
-            var_dump($path);
             $files = File :: ls($path);
-            var_dump($files);
             foreach ($files as $file) {
                 $class = preg_replace('#^' . $path . DIRECTORY_SEPARATOR . '#', '', $file);
                 $class = preg_replace('#\.php$#', '', $class);
