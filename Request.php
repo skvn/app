@@ -162,6 +162,12 @@ class Request
         return $this->getServer('REQUEST_URI');
     }
 
+    function isSecure()
+    {
+        $https = $this->getServer('HTTPS');
+        return !empty($https);
+    }
+
     function getFile($name)
     {
         if (isset($this->request[$name])) {
