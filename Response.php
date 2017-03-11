@@ -35,7 +35,7 @@ class Response
 
     function setCookie($name, $value, $expires=0, $args = [])
     {
-        $domain = $this->app->config->get('core.domain');
+        $domain = $this->app->config->get('app.domain');
         setcookie(  $name,
             $value,
             $expires ? time() + $expires * 24 * 3600 : 0,
