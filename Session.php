@@ -23,7 +23,9 @@ class Session implements \ArrayAccess
 
     function set($key, $value)
     {
-        $_SESSION[$key] = $value;
+        if ($this->started) {
+            $_SESSION[$key] = $value;
+        }
     }
 
     function has($key)
