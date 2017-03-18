@@ -44,25 +44,4 @@ class UrlLoader
 
     }
 
-//    function fetch2($uri, $args = [], $params = [])
-//    {
-//        mtoProfiler :: instance()->logDebug(, "debug/curl_call");
-//        if (curl_errno($curl) > 0 || curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200)
-//        {
-//            //var_dump($result);
-//            mtoProfiler :: instance()->logDebug($uri . "::" . curl_getinfo($curl, CURLINFO_RESPONSE_CODE) . "::" . curl_errno($curl) . "::" . curl_error($curl).print_r($result,1), $filename);
-//
-//            //mtoProfiler :: instance()->logDebug($uri . "\n" . $result, "debug/curl_output");
-//            curl_close($curl);
-//            if (isset($params['ctl_return_error']))
-//            {
-//                return $result;
-//            }
-//            throw new mtoException("Load failed");
-//        }
-//        curl_close($curl);
-//        return $result;
-//    }
-
-
 }
