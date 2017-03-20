@@ -142,10 +142,10 @@ class Request
         return isset($this->cookie[$var]);
     }
 
-//    function setCookie($var, $value)
-//    {
-//        $this->cookie[$var] = $value;
-//    }
+    function setCookie($var, $value)
+    {
+        $this->cookie[$var] = $value;
+    }
 
     function getUri()
     {
