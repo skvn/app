@@ -22,6 +22,7 @@ class Request
     protected $data = [];
     protected $arguments = [];
     protected $options = [];
+    protected $raw = null;
 
     function __construct()
     {
@@ -132,6 +133,25 @@ class Request
         return isset($this->server[$var]);
     }
 
+    function getContentType()
+    {
+        $type = $this->getServer('CONTENT_TYPE');
+        if (is_null($type)) {
+            $type = $this->getServer('HTTP_CONTENT_TYPE');
+        }
+        return $type;
+    }
+
+    public function getReferrer()
+    {
+        return $this->getServer('HTTP_REFERER');
+    }
+
+    public function getUserAgent()
+    {
+        return $this->getServer('HTTP_USER_AGENT');
+    }
+
     function getCookie($var)
     {
         return $this->cookie[$var] ?? null;
@@ -162,11 +182,36 @@ class Request
         return $this->getServer('REQUEST_URI');
     }
 
+    public function getRawBody()
+    {
+        if (is_null($this->raw)) {
+            $this->raw = file_get_contents('php://input');
+        }
+        return $this->raw;
+    }
+
     function isSecure()
     {
         $https = $this->getServer('HTTPS');
         return !empty($https);
     }
+
+    public function isAjax()
+    {
+        return $this->getServer('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
+    }
+
+    public function isPjax()
+    {
+        return $this->isAjax() && $this->getServer('HTTP_X_PJAX') != null;
+    }
+
+    public function isFlash()
+    {
+        $agent = $this->getUserAgent();
+        return Str :: pos('Shockwave', $agent) !== false || Str :: pos('Flash', $agent) !== false;
+    }
+
 
     function getFile($name)
     {
