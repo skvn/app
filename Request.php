@@ -174,7 +174,12 @@ class Request
 
     function hasPost()
     {
-        return $this->method == "POST";
+        return $this->method === "POST";
+    }
+
+    function isPost()
+    {
+        return $this->hasPost();
     }
 
     function getRawUrl()

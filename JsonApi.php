@@ -3,8 +3,95 @@
 namespace Skvn\App;
 
 use Skvn\Base\Traits\AppHolder;
+use Skvn\Base\Helpers\Str;
+use Skvn\Event\Events\Log as LogEvent;
+
 
 class JsonApi
 {
     use AppHolder;
+
+    protected $services;
+    protected $config;
+
+    function __construct($config) {
+        $this->config = $config;
+    }
+
+    function handleRequest($request, $response)
+    {
+        if (!$request->isPost()) {
+            throw new Exceptions\ApiException('Only POST allowed for JSON API');
+        }
+        $post = json_decode($request->getRawBody(), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exceptions\ApiException('Unable to decode API request');
+        }
+        if (empty($post)) {
+            throw new Exceptions\ApiException('JSON API request is empty');
+        }
+        if (empty($post['endpoint'])) {
+            throw new Exceptions\ApiException('Endpoint not found');
+        }
+        if (Str :: pos('/', $post['endpoint']) === false) {
+            throw new Exceptions\ApiException('Invalid endpoint: ' . $post['endpoint']);
+        }
+        $this->buildServices();
+        list($service, $method) = explode('/', $post['endpoint'], 2);
+        if (!isset($this->services[$service])) {
+            throw new Exceptions\ApiException('Service ' . $service . ' not found');
+        }
+        if (!$this->services[$service]->authorize($post)) {
+            throw new Exceptions\ApiException('Authorization failed for ' . $post['endpoint']);
+        }
+
+        try {
+            $result = $this->services[$service]->call($method, $post);
+        } catch (\Exception $e) {
+            $result = ['error_code' => $e->getCode(), 'error' => $e->getMessage()];
+        }
+
+        $response->content = json_encode($result, JSON_UNESCAPED_UNICODE);
+        $response->format = "json";
+        //return $result;
+    }
+
+    protected function buildServices()
+    {
+        foreach ($this->config['services'] ?? [] as $class) {
+            $this->registerService($class);
+        }
+    }
+
+    function registerService($class)
+    {
+        $service = $this->app->make($class);
+        if (!$service instanceof ApiService) {
+            throw new Exceptions\ApiException('Attempt to register incorrect API service: ' . $class);
+        }
+        $this->services[$service->getName()] = $service;
+    }
+
+    function call($endpoint, $args = [])
+    {
+        $args['endpoint'] = $endpoint;
+        $url = $this->app->config['app.http_root'] . $this->config['url'];
+        $this->log('REQUEST:' . $endpoint);
+        $result = $this->app->urlLoader->load($url, [], [
+            'post' => 1,
+            'postfields' => json_encode($args)
+        ]);
+        $this->log('RESPONSE:' . $result);
+        //var_dump($result);
+        return json_decode($result, true);
+    }
+
+    function log($message)
+    {
+        if (!empty($this->config['logging'])) {
+            $this->app->triggerEvent(new LogEvent(['message' => $message, 'category' => 'api']));
+        }
+    }
+
+
 }

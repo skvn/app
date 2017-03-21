@@ -25,13 +25,13 @@ class UrlLoader
             $curlParams[constant('CURLOPT_' . strtoupper($pname))] = $pvalue;
         }
         $result = Curl :: fetch($url, $curlParams);
-        \App :: triggerEvent(new LogEvent([
+        $this->app->triggerEvent(new LogEvent([
             'message' => $url . ' loaded (' . strlen($result['response']) . ') in ' . $result['time'],
             'category' => 'debug/curl_load',
             'info' => $result
         ]));
         if ($result['error_num'] > 0 || $result['code'] != 200) {
-            \App :: triggerEvent(new LogEvent([
+            $this->app->triggerEvent(new LogEvent([
                 'message' => $url . ' load failed',
                 'category' => 'debug/curl_fail',
                 'info' => $result
