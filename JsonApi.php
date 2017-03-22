@@ -37,19 +37,23 @@ class JsonApi
             throw new Exceptions\ApiException('Invalid endpoint: ' . $post['endpoint']);
         }
         $this->buildServices();
-        list($service, $method) = explode('/', $post['endpoint'], 2);
-        if (!isset($this->services[$service])) {
-            throw new Exceptions\ApiException('Service ' . $service . ' not found');
-        }
-        if (!$this->services[$service]->authorize($post)) {
-            throw new Exceptions\ApiException('Authorization failed for ' . $post['endpoint']);
-        }
 
         try {
+            list($service, $method) = explode('/', $post['endpoint'], 2);
+            if (!isset($this->services[$service])) {
+                throw new Exceptions\ApiException('Service ' . $service . ' not found');
+            }
+            if (!$this->services[$service]->authorize($post)) {
+                throw new Exceptions\ApiException('Authorization failed for ' . $post['endpoint']);
+            }
             $result = $this->services[$service]->call($method, $post);
         } catch (\Exception $e) {
-            $result = ['error_code' => $e->getCode(), 'error' => $e->getMessage()];
+            $result = ['error_code' => $e->getCode(), 'error_message' => $e->getMessage()];
         }
+
+        $endpoint = $post['endpoint'];
+        unset($post['endpoint']);
+        $this->log(['endpoint' => $endpoint, 'args' => $post, 'result' => $result], true);
 
         $response->content = json_encode($result, JSON_UNESCAPED_UNICODE);
         $response->format = "json";
@@ -72,24 +76,27 @@ class JsonApi
         $this->services[$service->getName()] = $service;
     }
 
-    function call($endpoint, $args = [])
+    function call($host, $endpoint, $args = [])
     {
-        $args['endpoint'] = $endpoint;
-        $url = $this->app->config['app.http_root'] . $this->config['url'];
-        $this->log('REQUEST:' . $endpoint);
+        $params = $args;
+        $params['endpoint'] = $endpoint;
+        $url = $this->app->config['app.protocol'] . $host . $this->config['url'];
+        $data = json_encode($params);
         $result = $this->app->urlLoader->load($url, [], [
             'post' => 1,
-            'postfields' => json_encode($args)
+            'postfields' => $data
         ]);
-        $this->log('RESPONSE:' . $result);
-        //var_dump($result);
-        return json_decode($result, true);
+        $response = json_decode($result, true);
+        $this->log(['response' => $response, 'args' => $args, 'host' => $host, 'endpoint' => $endpoint]);
+        return $response;
     }
 
-    function log($message)
+
+    function log($args, $handle = false)
     {
         if (!empty($this->config['logging'])) {
-            $this->app->triggerEvent(new LogEvent(['message' => $message, 'category' => 'api']));
+            $args['category'] = $handle ? 'apis' : 'api';
+            $this->app->triggerEvent(new LogEvent($args));
         }
     }
 
