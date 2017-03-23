@@ -123,9 +123,9 @@ class Request
         return $this->options;
     }
 
-    function getServer($var)
+    function getServer($var, $default = null)
     {
-        return $this->server[$var] ?? null;
+        return $this->server[$var] ?? $default;
     }
 
     function hasServer($var)
@@ -150,6 +150,11 @@ class Request
     public function getUserAgent()
     {
         return $this->getServer('HTTP_USER_AGENT');
+    }
+
+    public function getClientIp()
+    {
+        return $this->getServer('REMOTE_ADDR', '0.0.0.0');
     }
 
     function getCookie($var)

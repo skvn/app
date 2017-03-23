@@ -73,6 +73,7 @@ class JsonApi
         if (!$service instanceof ApiService) {
             throw new Exceptions\ApiException('Attempt to register incorrect API service: ' . $class);
         }
+        $service->setApp($this->app);
         $this->services[$service->getName()] = $service;
     }
 
