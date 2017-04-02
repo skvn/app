@@ -85,7 +85,8 @@ class JsonApi
         $data = json_encode($params);
         $result = $this->app->urlLoader->load($url, [], [
             'post' => 1,
-            'postfields' => $data
+            'postfields' => $data,
+            'ctl_return_error' => true
         ]);
         $response = json_decode($result, true);
         $this->log(['response' => $response, 'args' => $args, 'host' => $host, 'endpoint' => $endpoint]);
