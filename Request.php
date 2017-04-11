@@ -88,9 +88,9 @@ class Request
         $this->data[$name] = $value;
     }
 
-    function get($name)
+    function get($name, $default = null)
     {
-        return $this->data[$name] ?? null;
+        return $this->data[$name] ?? $default;
     }
 
     function has($name)
