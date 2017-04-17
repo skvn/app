@@ -241,6 +241,11 @@ class Request
         return $obj;
     }
 
+    function getRawFiles()
+    {
+        return $this->files;
+    }
+
 
 
 
