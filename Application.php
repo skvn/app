@@ -224,6 +224,11 @@ class Application extends Container
         return $commands;
     }
 
+    function filterScheduledEntry($entry)
+    {
+        return true;
+    }
+
     function getAppServices()
     {
         return array_merge([
