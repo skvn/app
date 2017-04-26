@@ -6,6 +6,13 @@ use Skvn\Base\Traits\ConsoleOutput;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\InvalidArgumentException;
 
+/**
+ * Class ConsoleActionEvent
+ * @package Skvn\App\Events
+ *
+ * @property array $arguments
+ * @property array $options
+ */
 class ConsoleActionEvent extends ActionEvent
 {
     use ConsoleOutput;
