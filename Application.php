@@ -229,6 +229,11 @@ class Application extends Container
         return true;
     }
 
+    function appendScheduledEntries($entries)
+    {
+        return $entries;
+    }
+
     function getAppServices()
     {
         return array_merge([
