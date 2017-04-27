@@ -5,7 +5,7 @@ namespace Skvn\App\Events;
 use Skvn\Base\Traits\ConsoleOutput;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\InvalidArgumentException;
-
+use Skvn\Event\Events\NotifyRegular;
 /**
  * Class ConsoleActionEvent
  * @package Skvn\App\Events
@@ -15,7 +15,42 @@ use Skvn\Base\Exceptions\InvalidArgumentException;
  */
 class ConsoleActionEvent extends ActionEvent
 {
-    use ConsoleOutput;
+    use ConsoleOutput {stdout as traitStdout;}
+
+    protected $strings = [];
+    protected $mailOutput = false;
+    protected $mailSubject = "";
+
+    function handle()
+    {
+        if (!empty($this->options['notify'])) {
+            $this->mailOutput = true;
+            $this->mailSubject = 'Result of ' . Str :: classBasename(get_class($this)) . ' job';
+        }
+        if (!empty($this->options['locks'])) {
+            file_put_contents($this->app->getPath('@locks/cron.' . posix_getpid()), json_encode([
+                'command' => Str :: classBasename(get_class($this)) . '/' . $this->action,
+                'options' => $this->options
+            ], JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
+        }
+        $result = parent :: handle();
+        if (!empty($this->options['locks'])) {
+            unlink($this->app->getPath('@locks/cron.' . posix_getpid()));
+        }
+        if ($this->mailOutput && !empty($this->strings)) {
+            $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
+        }
+        return $result;
+    }
+
+    function stdout($text)
+    {
+        $this->strings = array_merge($this->strings, (array) $text);
+        if ($this->mailOutput) {
+            return;
+        }
+        return $this->traitStdout($text);
+    }
 
     function describeClass()
     {
