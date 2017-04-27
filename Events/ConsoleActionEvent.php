@@ -27,6 +27,9 @@ class ConsoleActionEvent extends ActionEvent
             $this->mailOutput = true;
             $this->mailSubject = 'Result of ' . Str :: classBasename(get_class($this)) . ' job';
         }
+        if (!empty($this->options['cron'])) {
+            $this->mailSubject = 'CRON-' . $this->app['cluster']->getOption('my_id') . ': ' . Str :: classBasename(get_class($this)) . '/' . $this->action . '(' . json_encode($this->options) . ')';
+        }
         if (!empty($this->options['locks'])) {
             file_put_contents($this->app->getPath('@locks/cron.' . posix_getpid()), json_encode([
                 'command' => Str :: classBasename(get_class($this)) . '/' . $this->action,
