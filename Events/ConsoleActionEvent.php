@@ -28,8 +28,12 @@ class ConsoleActionEvent extends ActionEvent
             $this->mailSubject = 'Result of ' . Str :: classBasename(get_class($this)) . ' job';
         }
         if (!empty($this->options['cron'])) {
-            $this->mailSubject = 'CRON-' . $this->app['cluster']->getOption('my_id') . ': ' . Str :: classBasename(get_class($this)) . '/' . $this->action . '(' . json_encode($this->options) . ')';
+            $this->mailSubject = 'CRON-' . $this->app['cluster']->getOption('my_id') . ': ' .
+                Str :: classBasename(get_class($this)) . '/' . $this->action . '(' .
+                json_encode(array_filter($this->options, function($v, $k){return !in_array($k, ['cron', 'notify', 'locks']);}, ARRAY_FILTER_USE_BOTH)) .
+                ')';
         }
+        ob_start();
         if (!empty($this->options['locks'])) {
             file_put_contents($this->app->getPath('@locks/cron.' . posix_getpid()), json_encode([
                 'command' => Str :: classBasename(get_class($this)) . '/' . $this->action,
@@ -42,7 +46,13 @@ class ConsoleActionEvent extends ActionEvent
         }
         if ($this->mailOutput && !empty($this->strings)) {
             $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
+            $output = ob_get_contents();
+            if (!empty($output)) {
+                $this->app->triggerEvent(new NotifyRegular(['subject' => '!!OUTPUT-' . $this->mailSubject, 'message' => $output]));
+            }
         }
+
+        ob_end_flush();
         return $result;
     }
 
