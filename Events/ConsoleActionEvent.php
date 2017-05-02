@@ -33,7 +33,9 @@ class ConsoleActionEvent extends ActionEvent
                 json_encode(array_filter($this->options, function($v, $k){return !in_array($k, ['cron', 'notify', 'locks']);}, ARRAY_FILTER_USE_BOTH)) .
                 ')';
         }
-        ob_start();
+        if ($this->mailOutput) {
+            ob_start();
+        }
         if (!empty($this->options['locks'])) {
             file_put_contents($this->app->getPath('@locks/cron.' . posix_getpid()), json_encode([
                 'command' => Str :: classBasename(get_class($this)) . '/' . $this->action,
@@ -52,7 +54,9 @@ class ConsoleActionEvent extends ActionEvent
             }
         }
 
-        ob_end_flush();
+        if ($this->mailOutput) {
+            ob_end_flush();
+        }
         return $result;
     }
 
