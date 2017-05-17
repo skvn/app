@@ -85,11 +85,6 @@ class Router
                 }
             }
         }
-        if (empty($this->routed))
-        {
-            //throw new mtoException('Route not found');
-        }
-        //__D($this->routed);
     }
 
     function apply(Request $request)

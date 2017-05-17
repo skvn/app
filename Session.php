@@ -16,9 +16,9 @@ class Session implements \ArrayAccess
 
     public $started = false;
 
-    function get($key)
+    function get($key, $default = null)
     {
-        return $_SESSION[$key] ?? null;
+        return $_SESSION[$key] ?? $default;
     }
 
     function set($key, $value)
