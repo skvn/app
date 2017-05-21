@@ -213,8 +213,7 @@ class Application extends Container
         foreach ($this->commandNamespaces as $ns => $path) {
             $files = File :: ls($path);
             foreach ($files as $file) {
-                $class = preg_replace('#^' . $path . DIRECTORY_SEPARATOR . '#', '', $file);
-                $class = preg_replace('#\.php$#', '', $class);
+                $class = preg_replace('#\.php$#', '', $file);
                 $class = $ns . '\\' . $class;
                 $command = new $class();
                 $commands[$command->getCommandName()] = $command;
