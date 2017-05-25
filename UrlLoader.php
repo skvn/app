@@ -4,6 +4,7 @@ namespace Skvn\App;
 
 use Skvn\Base\Helpers\Curl;
 use Skvn\Base\Helpers\Str;
+use Skvn\Base\Helpers\File;
 use Skvn\Base\Exceptions\CurlException;
 use Skvn\Base\Traits\AppHolder;
 use Skvn\Event\Events\Log as LogEvent;
@@ -43,5 +44,26 @@ class UrlLoader
         return $result['response'];
 
     }
+
+    function downloadFile($src, $dest)
+    {
+        File :: mkdir(dirname($dest));
+
+        $fp = fopen($dest, "w");
+        try {
+            $this->load($src, [], [
+                'returntransfer' => false,
+                'file' => $fp
+            ]);
+            fclose($fp);
+            return true;
+        }
+        catch (\Exception $e) {
+            fclose($fp);
+            unlink($dest);
+            return false;
+        }
+    }
+
 
 }
