@@ -23,6 +23,7 @@ class ConsoleActionEvent extends ActionEvent
 
     function handle()
     {
+        $timer = microtime(true);
         if (!empty($this->options['notify'])) {
             $this->mailOutput = true;
             $this->mailSubject = 'Result of ' . Str :: classBasename(get_class($this)) . ' job';
@@ -47,6 +48,8 @@ class ConsoleActionEvent extends ActionEvent
             unlink($this->app->getPath('@locks/cron.' . posix_getpid()));
         }
         if ($this->mailOutput && !empty($this->strings)) {
+            $this->strings[] = '';
+            $this->strings[] = 'Executed in ' . round(microtime(true) - $t, 2) . ' seconds';
             $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
             $output = ob_get_contents();
             if (!empty($output)) {
