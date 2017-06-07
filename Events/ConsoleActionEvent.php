@@ -49,7 +49,7 @@ class ConsoleActionEvent extends ActionEvent
         }
         if ($this->mailOutput && !empty($this->strings)) {
             $this->strings[] = '';
-            $this->strings[] = 'Executed in ' . round(microtime(true) - $t, 2) . ' seconds';
+            $this->strings[] = 'Executed in ' . round(microtime(true) - $timer , 2) . ' seconds';
             $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
             $output = ob_get_contents();
             if (!empty($output)) {
