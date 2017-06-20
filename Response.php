@@ -44,4 +44,9 @@ class Response
         );
     }
 
+    function setContentType($type)
+    {
+        header('Content-Type: ' . $type);
+    }
+
 }
