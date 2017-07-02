@@ -110,10 +110,12 @@ class ConsoleActionEvent extends ActionEvent
         }
         foreach ((array) ($info[$this->action]['tags']['option'] ?? []) as $opt) {
             list($type, $name, $desc) = explode(' ', $opt);
-            if (Str :: pos('=', $name) !== false) {
-                list($name, $default) = explode('=', $name);
-                $this->payload['options'][$name] = $default;
-            }
+                if (Str :: pos('=', $name) !== false) {
+                    list($name, $default) = explode('=', $name);
+                    if (!isset($this->payload['options'][$name])) {
+                        $this->payload['options'][$name] = $default;
+                    }
+                }
             if (Str :: pos('*', $name) === 0) {
                 if (!isset($this->options[substr($name, 1)])) {
                     throw new InvalidArgumentException('Option ' . substr($name, 1) . ' is required');
