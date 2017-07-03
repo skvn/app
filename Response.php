@@ -49,4 +49,16 @@ class Response
         header('Content-Type: ' . $type);
     }
 
+    function setAnswerCode($code, $status = null)
+    {
+        if (is_null($status)) {
+            switch ($code) {
+                case 404:
+                    $status = 'Not Found';
+                break;
+            }
+        }
+        header('HTTP/1.x ' . $code . ' ' . $status);
+    }
+
 }
