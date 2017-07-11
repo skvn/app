@@ -67,6 +67,9 @@ class ConsoleActionEvent extends ActionEvent
 
     function stdout($text)
     {
+        if (!empty($this->options['quiet'])) {
+            return;
+        }
         $this->strings = array_merge($this->strings, (array) $text);
         if ($this->mailOutput) {
             return;
