@@ -68,6 +68,13 @@ class Application extends Container
                 throw $e;
             }
         }
+        catch (\Error $e)
+        {
+            $result = $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
+            if ($result === false) {
+                throw $e;
+            }
+        }
         $this->triggerEvent(new Events\Shutdown($data));
     }
 
