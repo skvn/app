@@ -47,10 +47,12 @@ class ConsoleActionEvent extends ActionEvent
         if (!empty($this->options['locks'])) {
             unlink($this->app->getPath('@locks/cron.' . posix_getpid()));
         }
-        if ($this->mailOutput && !empty($this->strings)) {
-            $this->strings[] = '';
-            $this->strings[] = 'Executed in ' . round(microtime(true) - $timer , 2) . ' seconds';
-            $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
+        if ($this->mailOutput) {
+            if (!empty($this->strings)) {
+                $this->strings[] = '';
+                $this->strings[] = 'Executed in ' . round(microtime(true) - $timer , 2) . ' seconds';
+                $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
+            }
             $output = ob_get_contents();
             if (!empty($output)) {
                 $this->app->triggerEvent(new NotifyRegular(['subject' => '!!OUTPUT-' . $this->mailSubject, 'message' => $output]));
