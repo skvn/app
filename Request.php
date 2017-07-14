@@ -128,12 +128,12 @@ class Request
         return $this->server[$var] ?? $default;
     }
 
-    function hasServer($var)
+    public function hasServer($var)
     {
         return isset($this->server[$var]);
     }
 
-    function getContentType()
+    public function getContentType()
     {
         $type = $this->getServer('CONTENT_TYPE');
         if (is_null($type)) {
@@ -157,37 +157,43 @@ class Request
         return $this->getServer('REMOTE_ADDR', '0.0.0.0');
     }
 
-    function getCookie($var)
+    public function getCookie($var)
     {
         return $this->cookie[$var] ?? null;
     }
 
-    function hasCookie($var)
+    public function hasCookie($var)
     {
         return isset($this->cookie[$var]);
     }
 
-    function setCookie($var, $value)
+    public function setCookie($var, $value)
     {
         $this->cookie[$var] = $value;
     }
 
-    function getUri()
+    public function getUri()
     {
         return $this->uri;
     }
 
-    function hasPost()
+    public function hasPost()
     {
         return $this->method === "POST";
     }
 
-    function isPost()
+    public function isPost()
     {
         return $this->hasPost();
     }
 
-    function getRawUrl()
+    public function isSearchBot()
+    {
+        $pattern = ['Googlebot', 'YandexBot'];
+        return Str :: contains($pattern, $this->getUserAgent());
+    }
+
+    public function getRawUrl()
     {
         return $this->getServer('REQUEST_URI');
     }
@@ -200,7 +206,7 @@ class Request
         return $this->raw;
     }
 
-    function isSecure()
+    public function isSecure()
     {
         $https = $this->getServer('HTTPS');
         return !empty($https);
