@@ -46,7 +46,7 @@ class Request
                         $arg = substr($arg, 1);
                     }
                     if (Str :: pos('=', $arg) !== false) {
-                        list($k, $v) = explode('=', $arg);
+                        list($k, $v) = explode('=', $arg, 2);
                     } else {
                         list($k, $v) = [$arg, true];
                     }
