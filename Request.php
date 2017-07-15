@@ -189,7 +189,7 @@ class Request
 
     public function isSearchBot()
     {
-        $pattern = ['Googlebot', 'YandexBot'];
+        $pattern = $this->app->config['app.sebot_agent_pattern'] ?? ['Googlebot', 'YandexBot'];
         return Str :: contains($pattern, $this->getUserAgent());
     }
 
