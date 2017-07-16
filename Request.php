@@ -142,9 +142,9 @@ class Request
         return $type;
     }
 
-    public function getReferrer()
+    public function getReferrer($default = null)
     {
-        return $this->getServer('HTTP_REFERER');
+        return $this->getServer('HTTP_REFERER', $default);
     }
 
     public function getUserAgent()
