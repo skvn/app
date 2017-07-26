@@ -48,7 +48,7 @@ class ConsoleActionEvent extends ActionEvent
             unlink($this->app->getPath('@locks/cron.' . posix_getpid()));
         }
         if ($this->mailOutput) {
-            if (!empty($this->strings)) {
+            if (!empty($this->strings) && !isset($this->options['quiet'])) {
                 $this->strings[] = '';
                 $this->strings[] = 'Executed in ' . round(microtime(true) - $timer , 2) . ' seconds';
                 $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
@@ -67,10 +67,10 @@ class ConsoleActionEvent extends ActionEvent
 
     function stdout($text)
     {
+        $this->strings = array_merge($this->strings, (array) $text);
         if (!empty($this->options['quiet'])) {
             return;
         }
-        $this->strings = array_merge($this->strings, (array) $text);
         if ($this->mailOutput) {
             return;
         }
