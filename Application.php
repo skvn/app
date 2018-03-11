@@ -15,6 +15,7 @@ class Application extends Container
     protected $rootPath;
     protected $pathAliases = [];
     protected $appMode = null;
+    protected $wafRules = [];
     protected $commandNamespaces = [
         '\\Skvn\\App\\Console' => __DIR__ . '/Console',
         '\\Skvn\\Event\\Console' => __DIR__ . '/../event/Console',
@@ -27,7 +28,7 @@ class Application extends Container
         $this->rootPath = $path;
         chdir($this->rootPath);
         if (is_null($mode)) {
-            $mode = php_sapi_name() == "cli" ? "cli" : "web";
+            $mode = php_sapi_name() == 'cli' ? 'cli' : 'web';
         }
         $this->appMode = $mode;
 
@@ -47,29 +48,50 @@ class Application extends Container
     {
 
     }
+    
+    public function registerWafRule($rule)
+    {
+        $this->wafRules[] = $rule;
+    }
+    
+    protected function checkWafRules()
+    {
+        foreach ($this->wafRules as $rule) {
+            if (is_object($rule)) {
+                foreach (get_class_methods($rule) as $method) {
+                    if (Str::pos('waf', $method) === 0) {
+                        if ($rule->$method($this->request) === false) {
+                            return false;
+                        }
+                    }
+                }
+            } else if (is_callable($rule)) {
+                if ($rule($this->request) === false) {
+                    return false;
+                }
+            } else {
+                throw new \Exception('Invalid WAF Rule assigned');
+            }
+        }
+        return true;
+    }
 
     function run()
     {
         $data = ['app' => $this];
-        try
-        {
-            $this->triggerEvent(new Events\Bootstrap($data));
-            $this->triggerEvent(new Events\CreateEnv($data));
-            $this->triggerEvent(new Events\SessionStart($data));
-            $this->triggerEvent(new Events\Preroute($data));
-            $this->triggerEvent(new Events\Route($data));
-            $this->triggerEvent(new Events\Execute($data));
-            $this->triggerEvent(new Events\Render($data));
-        }
-        catch (\Exception $e)
-        {
-            $result = $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
-            if ($result === false) {
-                throw $e;
+        try {
+            if ($this->checkWafRules() !== false) {
+                $this->triggerEvent(new Events\Bootstrap($data));
+                $this->triggerEvent(new Events\CreateEnv($data));
+                $this->triggerEvent(new Events\SessionStart($data));
+                $this->triggerEvent(new Events\Preroute($data));
+                $this->triggerEvent(new Events\Route($data));
+                $this->triggerEvent(new Events\Execute($data));
+                $this->triggerEvent(new Events\Render($data));
+            } else {
+                $this->triggerEvent(new Events\Banned($data));
             }
-        }
-        catch (\Error $e)
-        {
+        } catch (\Throwable $e) {
             $result = $this->triggerEvent(new Events\Exception(['exception' => $e, 'app' => $this]));
             if ($result === false) {
                 throw $e;

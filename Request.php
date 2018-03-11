@@ -147,9 +147,9 @@ class Request
         return $this->getServer('HTTP_REFERER', $default);
     }
 
-    public function getUserAgent()
+    public function getUserAgent($default = null)
     {
-        return $this->getServer('HTTP_USER_AGENT');
+        return $this->getServer('HTTP_USER_AGENT', $default);
     }
 
     public function getClientIp()
