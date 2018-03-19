@@ -156,6 +156,11 @@ class Request
     {
         return $this->getServer('REMOTE_ADDR', '0.0.0.0');
     }
+    
+    public function getHost($default = '')
+    {
+        return $this->getServer('HTTP_HOST', $default);
+    }
 
     public function getCookie($var)
     {
