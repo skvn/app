@@ -32,7 +32,7 @@ class Request
         $this->cookie = $_COOKIE ?? [];
         $this->server = $_SERVER ?? [];
         $this->files = $_FILES ?? [];
-        $this->method = $this->server['REQUEST_METHOD'] ?? "GET";
+        $this->method = $this->server['REQUEST_METHOD'] ?? null;
         $this->data = array_merge($this->get, $this->post, $this->request);
         if (!empty($this->server['argv'])) {
             $args = $this->server['argv'];
@@ -98,9 +98,9 @@ class Request
         return isset($this->data[$name]);
     }
 
-    function getMethod()
+    function getMethod($default = '')
     {
-        return $this->method;
+        return $this->method ?? $default;
     }
 
     function getArgument($name)
