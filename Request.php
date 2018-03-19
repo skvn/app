@@ -198,9 +198,9 @@ class Request
         return Str :: contains($pattern, $this->getUserAgent());
     }
 
-    public function getRawUrl()
+    public function getRawUrl($default = null)
     {
-        return $this->getServer('REQUEST_URI');
+        return $this->getServer('REQUEST_URI', $default);
     }
 
     public function getRawBody()
