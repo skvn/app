@@ -124,6 +124,10 @@ class Application extends Container
         return $this->aliases[$alias];
     }
 
+    function execCommand(Event $command)
+    {
+        return $this->events->trigger($command, true);
+    }
 
     function triggerEvent(Event $event)
     {
