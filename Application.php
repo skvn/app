@@ -10,6 +10,12 @@ use Skvn\Base\Exceptions\NotFoundException;
 use Skvn\Event\Contracts\Event;
 use Skvn\Base\Helpers\File;
 
+/**
+ * Class Application
+ * @package Skvn\App
+ * 
+ * @property \Skvn\Event\EventDispatcher $events
+ */
 class Application extends Container
 {
     protected $rootPath;
