@@ -319,6 +319,7 @@ class Application extends Container
             'Response' => Facades\Response :: class,
             'Session' => Facades\Session :: class,
             'DB' => Facades\DB :: class,
+            'View' => Facades\View :: class,
         ];
     }
 
