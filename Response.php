@@ -56,6 +56,9 @@ class Response
                 case 404:
                     $status = 'Not Found';
                 break;
+                case 304:
+                    $status = 'Not Modified';
+                break;
             }
         }
         header('HTTP/1.x ' . $code . ' ' . $status);
