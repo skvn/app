@@ -320,6 +320,7 @@ class Application extends Container
             'Session' => Facades\Session :: class,
             'DB' => Facades\DB :: class,
             'View' => Facades\View :: class,
+            'RedisDB' => Facades\RedisDB::class,
         ];
     }
 
