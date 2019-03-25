@@ -40,7 +40,9 @@ class Response
             $value,
             $expires ? time() + $expires * 24 * 3600 : 0,
             !empty($args['path']) ? $args['path'] : "/",
-            !empty($args['domain']) ? $args['domain'] : ("." . $domain)
+            !empty($args['domain']) ? $args['domain'] : ("." . $domain),
+            $args['secure'] ?? false,
+            $args['httponly'] ?? false
         );
     }
 
