@@ -20,6 +20,7 @@ class JsonApi
 
     function handleRequest($request, $response)
     {
+        $t = microtime(true);
         if (!$request->isPost()) {
             throw new Exceptions\ApiException('Only POST allowed for JSON API');
         }
@@ -53,7 +54,12 @@ class JsonApi
 
         $endpoint = $post['endpoint'];
         unset($post['endpoint']);
-        $this->log(['endpoint' => $endpoint, 'args' => $post, 'result' => $result], true);
+        $this->log([
+            'endpoint' => $endpoint,
+            'args' => $post,
+            'result' => $result,
+            'time' => microtime(true) - $t
+        ], true);
 
         $response->content = json_encode($result, JSON_UNESCAPED_UNICODE);
         $response->format = "json";
@@ -79,6 +85,7 @@ class JsonApi
 
     function call($host, $endpoint, $args = [])
     {
+        $t = microtime(true);
         $params = $args;
         $params['endpoint'] = $endpoint;
         $url = $this->app->config['app.protocol'] . $host . $this->config['url'];
@@ -89,7 +96,12 @@ class JsonApi
             'ctl_return_error' => true
         ]);
         $response = json_decode($result, true);
-        $this->log(['response' => $response, 'args' => $args, 'host' => $host, 'endpoint' => $endpoint]);
+        $this->log([
+            'response' => $response,
+            'args' => $args,
+            'host' => $host,'endpoint' => $endpoint,
+            'time' => microtime(true) - $t
+        ]);
         return $response;
     }
 
