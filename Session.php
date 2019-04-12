@@ -16,6 +16,21 @@ class Session implements \ArrayAccess
 
     public $started = false;
 
+    public function getId()
+    {
+        return session_id();
+    }
+
+    public function setId($id)
+    {
+        session_id($id);
+    }
+
+    public function setName($name)
+    {
+        session_name($name);
+    }
+
     function get($key, $default = null)
     {
         return $_SESSION[$key] ?? $default;
@@ -52,5 +67,10 @@ class Session implements \ArrayAccess
     function destroy()
     {
         session_destroy();
+    }
+
+    function close()
+    {
+        session_write_close();
     }
 }
