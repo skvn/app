@@ -73,4 +73,14 @@ class Session implements \ArrayAccess
     {
         session_write_close();
     }
+
+    function all()
+    {
+        return $_SESSION;
+    }
+
+    function export()
+    {
+        return $this->all();
+    }
 }
