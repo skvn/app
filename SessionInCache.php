@@ -34,7 +34,7 @@ class SessionInCache
     {
         $this->id = $this->isValidId($id) ? $id : $this->generateSessionId();
         $this->response->setCookie($this->config['name'], $this->id, $this->config['cookie_ttl'], ['httponly' => true]);
-        $this->data = array_merge($this->data, $this->getCache()->get($this->id));
+        $this->data = array_merge($this->data, $this->getCache()->get($this->id) ?? []);
     }
 
     public function setName($name)
