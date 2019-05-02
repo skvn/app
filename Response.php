@@ -4,54 +4,77 @@ namespace Skvn\App;
 
 use Skvn\Base\Container;
 use Skvn\Base\Traits\AppHolder;
+use Skvn\View\View;
+use Skvn\Base\Helpers\Str;
 
 class Response
 {
     use AppHolder;
 
-    public $format = "html";
-    public $content;
-    protected $headers = [];
+    private $format = 'html';
+    private $content;
+    private $headers = [];
+    private $redirect = null;
+    private $cookies = [];
 
-
-    function pushNoCache()
+    public function setContent($content, $format = 'auto')
     {
-        $now = gmdate('D, d M Y H:i:s', strtotime("2000-01-01")) . ' GMT';
-        $this->headers[] = "Expires: " . $now;
-        $this->headers[] = "Last-Modified: ".$now;
-        $this->headers[] = "Cache-Control: no-cache, must-revalidate";
-        $this->headers[] = "Pragma: no-cache";
-
-        foreach ($this->headers as $h)
-        {
-            header($h);
+        $this->content = $content;
+        if ($format == 'auto') {
+            switch ($format) {
+                case is_array($content):
+                    $format = 'json';
+                break;
+                default:
+                    $format = 'html';
+                break;
+            }
         }
+        $this->format = $format;
     }
 
-    function redirect($url, $code = null)
+    public function pushNoCache()
     {
-        header('Location: ' . $url, true, $code);
+        $now = gmdate('D, d M Y H:i:s', strtotime('2000-01-01')) . ' GMT';
+        $this->headers[] = 'Expires: ' . $now;
+        $this->headers[] = 'Last-Modified: ' . $now;
+        $this->headers[] = 'Cache-Control: no-cache, must-revalidate';
+        $this->headers[] = 'Pragma: no-cache';
+        return $this;
     }
 
-    function setCookie($name, $value, $expires=0, $args = [])
+    public function redirect($url, $code = null)
     {
-        $domain = $this->app->config->get('app.domain');
-        setcookie(  $name,
-            $value,
-            $expires ? time() + $expires * 24 * 3600 : 0,
-            !empty($args['path']) ? $args['path'] : "/",
-            !empty($args['domain']) ? $args['domain'] : ("." . $domain),
-            $args['secure'] ?? false,
-            $args['httponly'] ?? false
-        );
+        $this->redirect = ['url' => $url, 'code' => $code];
+        return $this;
     }
 
-    function setContentType($type)
+    public function setCookie($name, $value, $expire=0, $args = [])
     {
-        header('Content-Type: ' . $type);
+        $this->cookies[] = [
+            'name' => $name,
+            'value' => $value,
+            'expire' => $expire,
+            'args' => $args
+        ];
+        return $this;
     }
 
-    function setAnswerCode($code, $status = null)
+    public function removeHeader($header)
+    {
+        $this->headers = array_values(array_filter($this->headers, function ($h) use ($header) {
+            return Str::pos($header, $h) !== 0;
+        }));
+        return $this;
+    }
+
+    public function setContentType($type)
+    {
+        $this->headers[] = 'Content-Type: ' . $type;
+        return $this;
+    }
+
+    public function setAnswerCode($code, $status = null)
     {
         if (is_null($status)) {
             switch ($code) {
@@ -63,7 +86,54 @@ class Response
                 break;
             }
         }
-        header('HTTP/1.x ' . $code . ' ' . $status);
+        array_unshift($this->headers, 'HTTP/1.x ' . $code . ' ' . $status);
+        return $this;
     }
+
+    public function commit($renderer = null)
+    {
+        $domain = $this->app->config->get('app.domain');
+        foreach ($this->cookies as $cookie) {
+            setcookie(
+                $cookie['name'],
+                $cookie['value'],
+                $cookie['expire'] ? time() + $cookie['expire'] * 24 * 3600 : 0,
+                $cookie['args']['path'] ?? '/',
+                $cookie['args']['domain'] ?? ('.' . $domain),
+                $cookie['args']['secure'] ?? false,
+                $cookie['args']['httponly'] ?? false
+            );
+        }
+        if (!empty($this->redirect)) {
+            header('Location: ' . $this->redirect['url'], true, $this->redirect['code']);
+            return;
+        }
+        switch ($this->format) {
+            case 'json':
+                $this->removeHeader('Content-Type');
+                $this->setContentType('application/json');
+            break;
+        }
+        foreach ($this->headers as $header) {
+            header($header);
+        }
+        switch ($this->format) {
+            case 'json';
+                echo json_encode($this->content);
+            break;
+            case $this->content instanceof View:
+                if (is_callable($renderer)) {
+                    echo $renderer($this->content);
+                } else {
+                    echo $this->content->render();
+                }
+            break;
+            default:
+                echo $this->content;
+            break;
+        }
+    }
+
+
 
 }

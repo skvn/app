@@ -61,9 +61,7 @@ class JsonApi
             'time' => microtime(true) - $t
         ], true);
 
-        $response->content = json_encode($result, JSON_UNESCAPED_UNICODE);
-        $response->format = "json";
-        //return $result;
+        $response->setContent($result, 'json');
     }
 
     protected function buildServices()
