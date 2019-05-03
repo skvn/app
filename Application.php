@@ -6,6 +6,7 @@ use Skvn\Base\Container;
 use Skvn\Base\Config;
 use Skvn\Event\EventDispatcher;
 use Skvn\Base\Helpers\Str;
+use Skvn\Base\Exceptions\Exception;
 use Skvn\Base\Exceptions\NotFoundException;
 use Skvn\Event\Contracts\Event;
 use Skvn\Base\Helpers\File;
@@ -76,7 +77,7 @@ class Application extends Container
                     return false;
                 }
             } else {
-                throw new \Exception('Invalid WAF Rule assigned');
+                throw new Exception('Invalid WAF Rule assigned');
             }
         }
         return true;
@@ -84,7 +85,7 @@ class Application extends Container
 
     function run()
     {
-        $data = ['app' => $this];
+        $data = ['app' => $this, 'request' => $this->request, 'response' => $this->response];
         try {
             if ($this->checkWafRules() !== false) {
                 $this->triggerEvent(new Events\Bootstrap($data));
@@ -108,13 +109,11 @@ class Application extends Container
 
     function bindEvent($event, $handler, $modes = null, $prepend = false)
     {
-        if (!$this->checkMode($modes))
-        {
+        if (!$this->checkMode($modes)) {
             return;
         }
 
-        if (is_string($handler) && strpos($handler, '/') !== false && strpos($handler, '@') !== false)
-        {
+        if (is_string($handler) && strpos($handler, '/') !== false && strpos($handler, '@') !== false) {
             list($class, $method) = explode('@', $handler);
             $classname = basename($class);
             $handler = $classname . '@' . $method;
@@ -148,18 +147,17 @@ class Application extends Container
         $modes = (array) $modes;
         $has_allow = false;
         foreach ($modes as $m) {
-            if (("!" . $this->appMode) == $m) {
+            if (('!' . $this->appMode) == $m) {
                 return false;
             }
-            if (strpos($m, '!') === false) {
+            if (Str::pos('!', $m) === false) {
                 $has_allow = true;
             }
             if ($m == $this->appMode) {
                 return true;
             }
         }
-        if ($has_allow)
-        {
+        if ($has_allow) {
             return false;
         }
         return true;
@@ -169,7 +167,6 @@ class Application extends Container
     {
         $code = 'class ' . $alias . ' extends \\Skvn\\Base\\Facade {protected static function getFacadeTarget() {return "' . $target . '";}}';
         eval($code);
-        //$this->registerAlias('\\Facades\\' . $alias, $alias);
     }
 
     function registerClassAlias($class, $alias)
@@ -186,10 +183,10 @@ class Application extends Container
 
     function registerPath($name, $path)
     {
-        if (Str :: pos(DIRECTORY_SEPARATOR, $path) !== 0) {
+        if (Str::pos(DIRECTORY_SEPARATOR, $path) !== 0) {
             $path = $this->rootPath . DIRECTORY_SEPARATOR . $path;
         }
-        if (Str :: pos('@', $name) !== 0) {
+        if (Str::pos('@', $name) !== 0) {
             $name = '@' . $name;
         }
         $this->pathAliases[$name] = $path;
@@ -206,7 +203,7 @@ class Application extends Container
     function getPath($path)
     {
         if (Str :: pos('@', $path) === 0) {
-            $pos = Str :: pos(DIRECTORY_SEPARATOR, $path);
+            $pos = Str::pos(DIRECTORY_SEPARATOR, $path);
             $alias = $pos === false ? $path : substr($path, 0, $pos);
             if (!isset($this->pathAliases[$alias])) {
                 throw new NotFoundException('Alias ' . $alias . ' not found');
@@ -229,14 +226,13 @@ class Application extends Container
 
     function createCommand($command, $args = [])
     {
-        if (Str :: pos('/', $command) !== false) {
+        if (Str::pos('/', $command) !== false) {
             list($controller, $action) = explode('/', $command);
-        } else
-        {
+        } else {
             list($controller, $action) = [$command, null];
         }
         foreach ($this->commandNamespaces as $ns => $path) {
-            $class = $ns . '\\' . Str :: studly($controller);
+            $class = $ns . '\\' . Str::studly($controller);
             if (class_exists($class)) {
                 $args['action'] = $action;
                 return new $class($args);
@@ -275,13 +271,13 @@ class Application extends Container
     function getAppServices()
     {
         return array_merge([
-            'config' => \Skvn\Base\Config :: class,
-            'events' => \Skvn\Event\EventDispatcher :: class,
-            'request' => \Skvn\App\Request :: class,
-            'response' => \Skvn\App\Response :: class,
-            'session' => \Skvn\App\Session :: class,
-            'router' => \Skvn\App\Router :: class,
-            'urlLoader' => \Skvn\App\UrlLoader :: class
+            'config' => \Skvn\Base\Config::class,
+            'events' => \Skvn\Event\EventDispatcher::class,
+            'request' => \Skvn\App\Request::class,
+            'response' => \Skvn\App\Response::class,
+            'session' => \Skvn\App\Session::class,
+            'router' => \Skvn\App\Router::class,
+            'urlLoader' => \Skvn\App\UrlLoader::class
         ], $this->services);
     }
 
@@ -311,15 +307,15 @@ class Application extends Container
     function getAppFacades()
     {
         return [
-            'App' => Facades\App :: class,
-            //'Config' => Facades\Config :: class,
-            'Queue' => Facades\Queue :: class,
-            'Events' => Facades\Events :: class,
-            'Request' => Facades\Request :: class,
-            'Response' => Facades\Response :: class,
-            'Session' => Facades\Session :: class,
-            'DB' => Facades\DB :: class,
-            'View' => Facades\View :: class,
+            'App' => Facades\App::class,
+            //'Config' => Facades\Config::class,
+            'Queue' => Facades\Queue::class,
+            'Events' => Facades\Events::class,
+            'Request' => Facades\Request::class,
+            'Response' => Facades\Response::class,
+            'Session' => Facades\Session::class,
+            'DB' => Facades\DB::class,
+            'View' => Facades\View::class,
             'RedisDB' => Facades\RedisDB::class,
         ];
     }
