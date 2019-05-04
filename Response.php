@@ -68,6 +68,15 @@ class Response
         return $this;
     }
 
+    public function addHeader($header, $value, $replace = false)
+    {
+        if ($replace) {
+            $this->removeHeader($header);
+        }
+        $this->headers[] = $header . ': ' . $value;
+        return $this;
+    }
+
     public function setContentType($type)
     {
         $this->headers[] = 'Content-Type: ' . $type;
@@ -104,6 +113,9 @@ class Response
                 $cookie['args']['httponly'] ?? false
             );
         }
+        foreach ($this->headers as $header) {
+            header($header);
+        }
         if (!empty($this->redirect)) {
             header('Location: ' . $this->redirect['url'], true, $this->redirect['code']);
             return;
@@ -113,9 +125,6 @@ class Response
                 $this->removeHeader('Content-Type');
                 $this->setContentType('application/json');
             break;
-        }
-        foreach ($this->headers as $header) {
-            header($header);
         }
         switch ($this->format) {
             case 'json';

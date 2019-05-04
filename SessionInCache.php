@@ -33,7 +33,11 @@ class SessionInCache
     public function setId($id)
     {
         $this->id = $this->isValidId($id) ? $id : $this->generateSessionId();
-        $this->response->setCookie($this->config['name'], $this->id, $this->config['cookie_ttl'], ['httponly' => true]);
+        $this->response
+            ->setCookie($this->config['name'], $this->id, $this->config['cookie_ttl'], ['httponly' => true])
+            ->addHeader('Expires', 'Thu, 19 Nov 1981 08:52:00 GMT')
+            ->addHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->addHeader('Pragma', 'no-cache');
         $this->data = array_merge($this->data, $this->getCache()->get($this->id) ?? []);
     }
 
