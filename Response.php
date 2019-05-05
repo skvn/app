@@ -11,7 +11,7 @@ class Response
 {
     use AppHolder;
 
-    private $format = 'html';
+    private $format = null;
     private $content;
     private $headers = [];
     private $redirect = null;
@@ -19,8 +19,10 @@ class Response
 
     public function setContent($content, $format = 'auto')
     {
-        $this->content = $content;
         if ($format == 'auto') {
+            if (!is_null($this->format)) {
+                return $this;
+            }
             switch ($format) {
                 case is_array($content):
                     $format = 'json';
@@ -31,6 +33,15 @@ class Response
             }
         }
         $this->format = $format;
+        $this->content = $content;
+        return $this;
+    }
+
+    function reset()
+    {
+        $this->content = null;
+        $this->format = null;
+        return $this;
     }
 
     public function pushNoCache()
@@ -101,6 +112,26 @@ class Response
 
     public function commit($renderer = null)
     {
+        switch ($this->format) {
+            case 'json':
+                $this->removeHeader('Content-Type');
+                $this->setContentType('application/json');
+            break;
+            case 'download':
+                $this->addHeader('Content-Description', 'File Transfer');
+                $this->addHeader('Content-Transfer-Encoding', 'binary');
+                if (!empty($this->content['mime'])) {
+                    $this->setContentType($this->content['mime']);
+                }
+                $filename = basename($this->content['filename']);
+                if (!empty($this->content['download_name'])) {
+                    $filename = $this->content['download_name'];
+                }
+                $this->addHeader('Content-disposition', 'attachment; filename=' . $filename);
+                $this->addHeader('Content-Length', filesize($this->content['filename']));
+                $this->addHeader('Connection', 'close');
+            break;
+        }
         $domain = $this->app->config->get('app.domain');
         foreach ($this->cookies as $cookie) {
             setcookie(
@@ -121,16 +152,15 @@ class Response
             return;
         }
         switch ($this->format) {
-            case 'json':
-                $this->removeHeader('Content-Type');
-                $this->setContentType('application/json');
-            break;
-        }
-        switch ($this->format) {
             case 'json';
                 echo json_encode($this->content);
             break;
-            case $this->content instanceof View:
+            case 'download':
+                ob_clean();
+                flush();
+                readfile($this->content['filename']);
+            break;
+            case ($this->content instanceof View):
                 if (is_callable($renderer)) {
                     echo $renderer($this->content);
                 } else {
