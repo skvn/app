@@ -2,166 +2,110 @@
 namespace Skvn\App;
 
 use Skvn\Base\Traits\AppHolder;
-
+use Skvn\Base\Helpers\Str;
 
 class Router
 {
     use AppHolder;
 
+    protected $routes = [];
 
-    protected $routes = array();
-    protected $host_routes = array();
-    protected $routed = array();
-
-    function add($method, $rule, $defaults = array())
+    function add($method, $rule, $defaults = [])
     {
-        array_push($this->routes, array(
+        $this->routes[] = [
             'method' => $method,
             'rule' => $rule,
             'defaults' => $defaults
-        ));
+        ];
         return $this;
     }
 
-    function addRoute($rule, $defaults = array())
+    function addRoute($rule, $defaults = [])
     {
         return $this->add('*', $rule, $defaults);
     }
 
-    function getRoute($rule, $defaults = array())
+    function getRoute($rule, $defaults = [])
     {
         return $this->add('GET', $rule, $defaults);
     }
 
-    function postRoute($rule, $defaults = array())
+    function postRoute($rule, $defaults = [])
     {
-        return $this->add('POST', $defaults);
+        return $this->add('POST', $rule, $defaults);
     }
 
-    function hostRoute($rule)
+    function run($url)
     {
-        array_push($this->host_routes, array('rule' => $rule));
-        return $this;
-    }
-
-    function run()
-    {
-        foreach ($this->routes as $route)
-        {
-            if ($route['method'] != '*' && $route['method'] != $this->app->request->getRequestMethod())
-            {
+        $routed = [];
+        foreach ($this->routes as $route) {
+            if ($route['method'] != '*' && $route['method'] != $this->app->request->getMethod()) {
                 continue;
             }
-            if (is_callable($route['rule']))
-            {
-                $routed = call_user_func($route['rule'], $this->app);
-                if ($routed !== false)
-                {
-                    $this->routed = array_merge($route['defaults'], $routed);
+            if (is_callable($route['rule'])) {
+                if (($r = call_user_func($route['rule'], $this->app)) !== false) {
+                    $routed = array_merge($r, $route['defaults']);
                     break;
                 }
-            }
-            elseif (is_string($route['rule']))
-            {
+            } elseif (is_string($route['rule'])) {
                 $compiled = $this->compileRule($route['rule']);
-                $routed = $this->checkRule($compiled, $this->app->request->getRawUrl());
-                if ($routed !== false)
-                {
-                    $this->routed = array_merge($route['defaults'], $routed);
-                    break;
-                }
-            }
-
-        }
-        foreach ($this->host_routes as $route)
-        {
-            if (is_callable($route['rule']))
-            {
-                $routed = call_user_func($route['rule'], $this->app);
-                if ($routed !== false)
-                {
-                    $this->routed = array_merge($this->routed, $routed);
+                if (($r = $this->checkRule($compiled, $url)) !== false) {
+                    $routed = array_merge($r, $route['defaults']);
                     break;
                 }
             }
         }
+        return $routed;
     }
 
-    function apply(Request $request)
-    {
-        foreach ($this->routed as $key => $value)
-        {
-            $request->set($key, $value);
-        }
-    }
-
-    function map(Request $request, $map)
-    {
-        foreach ($map as $key => $value)
-        {
-            if (isset($this->routed[$key]))
-            {
-                $request->set($value, $this->routed[$key]);
-            }
-        }
-    }
 
     private function compileRule($rule)
     {
-        if (strpos($rule, '[') === false && strpos($rule, '*') === strlen($rule)-1)
-        {
-            return array(
+        if (Str::pos('[', $rule) === false && Str::pos('*', $rule) === strlen($rule)-1) {
+            return [
                 'regexp' => preg_replace('#\*$#', '', $rule),
                 'exact' => false,
                 'prefix' => true
-            );
+            ];
         }
-        if (strpos($rule, '[') === false)
-        {
-            return array(
+        if (Str::pos('[', $rule) === false) {
+            return [
                 'regexp' => $rule,
                 'exact' => true,
                 'prefix' => false
-            );
+            ];
         }
         preg_match_all('#\[([A-Za-z_0-9]+)\]#sU', $rule, $matches, PREG_SET_ORDER);
-        $map = array();
-        for ($i=0; $i < count($matches); $i++)
-        {
+        $map = [];
+        for ($i=0; $i < count($matches); $i++) {
             $map[$i+1] = $matches[$i][1];
             $rule = str_replace('[' . $matches[$i][1] . ']', '([A-Za-z%\.\(\)0-9-_]+)', $rule);
         }
-        return array(
-            'regexp' => str_replace("*", ".+", '#^' . $rule . '#s'),
+        return [
+            'regexp' => str_replace('*', '.+', '#^' . $rule . '#s'),
             'exact' => false,
             'prefix' => false,
             'map' => $map
-        );
+        ];
     }
 
     private function checkRule(array $rule, $url)
     {
-        if ($rule['exact'])
-        {
-            if ($rule['regexp'] == $url)
-            {
-                return array('routed' => 1);
+        if ($rule['exact']) {
+            if ($rule['regexp'] == $url) {
+                return ['routed' => 1];
             }
             return false;
         }
-        if ($rule['prefix'])
-        {
-            if (strpos($url, $rule['regexp']) === 0)
-            {
-                return array('routed' => 1);
+        if ($rule['prefix']) {
+            if (Str::pos($rule['regexp'], $url) === 0) {
+                return ['routed' => 1];
             }
             return false;
         }
-        if (preg_match($rule['regexp'], $url, $matches))
-        {
-            $res = array('routed' => 1);
-            for ($i=1; $i<count($matches); $i++)
-            {
+        if (preg_match($rule['regexp'], $url, $matches)) {
+            $res = ['routed' => 1];
+            for ($i=1; $i<count($matches); $i++) {
                 $res[$rule['map'][$i]] = $matches[$i];
             }
             return $res;
