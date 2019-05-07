@@ -62,6 +62,7 @@ class JsonApi
         ], true);
 
         $response->setContent($result, 'json');
+        return $result;
     }
 
     protected function buildServices()
