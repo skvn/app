@@ -167,6 +167,11 @@ class Request
         return $this->cookie[$var] ?? null;
     }
 
+    public function getAllCookies()
+    {
+        return $this->cookie;
+    }
+
     public function hasCookie($var)
     {
         return isset($this->cookie[$var]);
