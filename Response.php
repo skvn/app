@@ -16,6 +16,13 @@ class Response
     private $headers = [];
     private $redirect = null;
     private $cookies = [];
+    private $finished = false;
+
+    public function forceFinish()
+    {
+        fastcgi_finish_request();
+        $this->finished = true;
+    }
 
     public function setContent($content, $format = 'auto')
     {
@@ -112,6 +119,9 @@ class Response
 
     public function commit($renderer = null)
     {
+        if ($this->finished) {
+            return;
+        }
         switch ($this->format) {
             case 'json':
                 $this->removeHeader('Content-Type');
