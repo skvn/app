@@ -131,6 +131,13 @@ class Response
                 $this->addHeader('Content-Length', filesize($this->content['filename']));
                 $this->addHeader('Connection', 'close');
             break;
+            case 'image':
+                if (!empty($this->content['mime'])) {
+                    $this->setContentType($this->content['mime']);
+                } else {
+                    $this->setContentType('image');
+                }
+            break;
         }
         $domain = $this->app->config->get('app.domain');
         foreach ($this->cookies as $cookie) {
@@ -159,6 +166,15 @@ class Response
                 ob_clean();
                 flush();
                 readfile($this->content['filename']);
+            break;
+            case 'image':
+                if (!empty($this->content['filename'])) {
+                    readfile($this->content['filename']);
+                } elseif (!empty($this->content['content'])) {
+                    echo $this->content['content'];
+                } else {
+                    echo base64_decode('R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==');
+                }
             break;
             case ($this->content instanceof View):
                 if (is_callable($renderer)) {
