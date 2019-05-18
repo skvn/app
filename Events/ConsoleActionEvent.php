@@ -19,11 +19,12 @@ class ConsoleActionEvent extends ActionEvent
 
     protected $strings = [];
     protected $mailOutput = false;
-    protected $mailSubject = "";
+    protected $mailSubject = '';
+    protected $startTs;
 
     function handle()
     {
-        $timer = microtime(true);
+        $this->startTs = microtime(true);
         if (!empty($this->options['notify'])) {
             $this->mailOutput = true;
             $this->mailSubject = 'Result of ' . Str :: classBasename(get_class($this)) . ' job';
@@ -43,14 +44,14 @@ class ConsoleActionEvent extends ActionEvent
                 'options' => $this->options
             ], JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
         }
-        $result = parent :: handle();
+        $result = parent::handle();
         if (!empty($this->options['locks'])) {
             unlink($this->app->getPath('@locks/cron.' . posix_getpid()));
         }
         if ($this->mailOutput) {
             if (!empty($this->strings) && !isset($this->options['quiet'])) {
                 $this->strings[] = '';
-                $this->strings[] = 'Executed in ' . round(microtime(true) - $timer , 2) . ' seconds';
+                $this->strings[] = 'Executed in ' . round(microtime(true) - $this->startTs , 2) . ' seconds';
                 $this->app->triggerEvent(new NotifyRegular(['subject' => $this->mailSubject, 'message' => implode(PHP_EOL, $this->strings)]));
             }
             $output = ob_get_contents();
@@ -75,6 +76,12 @@ class ConsoleActionEvent extends ActionEvent
             return;
         }
         return $this->traitStdout($text);
+    }
+
+    function finMsg($text)
+    {
+        $text .= ' in ' . round(microtime(true) - $this->startTs, 1) . ' seconds';
+        return $this->stdout($text);
     }
 
     function describeClass()
