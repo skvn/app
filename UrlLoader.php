@@ -31,7 +31,7 @@ class UrlLoader
             'category' => 'debug/curl_load',
             'info' => $result
         ]));
-        if ($result['error_num'] > 0 || $result['code'] != 200) {
+        if ($result['error_num'] > 0 || !in_array($result['code'],  [200, 201, 204])) {
             $this->app->triggerEvent(new LogEvent([
                 'message' => $url . ' load failed',
                 'category' => 'debug/curl_fail',
