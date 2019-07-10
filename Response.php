@@ -69,6 +69,7 @@ class Response
 
     public function setCookie($name, $value, $expire=0, $args = [])
     {
+        $this->cookies = array_filter($this->cookies, function($cook) use ($name) { return $cook['name'] != $name;});
         $this->cookies[] = [
             'name' => $name,
             'value' => $value,
