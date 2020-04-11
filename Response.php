@@ -6,6 +6,7 @@ use Skvn\Base\Container;
 use Skvn\Base\Traits\AppHolder;
 use Skvn\View\View;
 use Skvn\Base\Helpers\Str;
+use Skvn\Base\Helpers\File;
 
 class Response
 {
@@ -131,14 +132,21 @@ class Response
             case 'download':
                 $this->addHeader('Content-Description', 'File Transfer');
                 $this->addHeader('Content-Transfer-Encoding', 'binary');
-                if (!empty($this->content['mime'])) {
-                    $this->setContentType($this->content['mime']);
+                $mime = $this->content['mime'] ?? null;
+                if (empty($mime)) {
+                    $mime = File::getMimeType($this->content['filename']);
+                }
+                if (!empty($mime)) {
+                    $this->setContentType($mime);
                 }
                 $filename = basename($this->content['filename']);
                 if (!empty($this->content['download_name'])) {
                     $filename = $this->content['download_name'];
                 }
                 $this->addHeader('Content-disposition', 'attachment; filename=' . $filename);
+                $this->addHeader('Expires', '0');
+                $this->addHeader('Cache-Control', 'must-revalidate, post-check=0,pre-check=0');
+                $this->addHeader('Pragma', 'public');
                 $this->addHeader('Content-Length', filesize($this->content['filename']));
                 $this->addHeader('Connection', 'close');
             break;
