@@ -185,6 +185,12 @@ class Response
                 ob_clean();
                 flush();
                 readfile($this->content['filename']);
+                if (!empty($this->content['autoremove']) && file_exists($this->content['filename'])) {
+                    File::rm($this->content['filename']);
+                }
+                if (!empty($this->content['autoremove_dir']) && file_exists(dirname($this->content['filename']))) {
+                    File::rm(dirname($this->content['filename']));
+                }
             break;
             case 'image':
                 if (!empty($this->content['filename'])) {
