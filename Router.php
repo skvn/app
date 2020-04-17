@@ -79,7 +79,7 @@ class Router
         $map = [];
         for ($i=0; $i < count($matches); $i++) {
             $map[$i+1] = $matches[$i][1];
-            $rule = str_replace('[' . $matches[$i][1] . ']', '([A-Za-z%\.\(\)0-9-_]+)', $rule);
+            $rule = str_replace('[' . $matches[$i][1] . ']', '([A-Za-z%\.\(\)0-9-_\:]+)', $rule);
         }
         return [
             'regexp' => str_replace('*', '.+', '#^' . $rule . '#s'),
