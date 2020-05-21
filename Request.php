@@ -5,11 +5,12 @@ namespace Skvn\App;
 use Skvn\Base\Traits\CastedProps;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Traits\AppHolder;
-
+use Skvn\Base\Traits\ArrayOrObjectAccessImpl;
 
 class Request
 {
     use CastedProps;
+    use ArrayOrObjectAccessImpl;
     use AppHolder;
 
     protected $get = [];
