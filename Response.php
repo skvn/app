@@ -130,6 +130,7 @@ class Response
                 $this->setContentType('application/json');
             break;
             case 'download':
+            case 'push_file':
                 $this->addHeader('Content-Description', 'File Transfer');
                 $this->addHeader('Content-Transfer-Encoding', 'binary');
                 $mime = $this->content['mime'] ?? null;
@@ -143,7 +144,7 @@ class Response
                 if (!empty($this->content['download_name'])) {
                     $filename = $this->content['download_name'];
                 }
-                $this->addHeader('Content-disposition', 'attachment; filename=' . $filename);
+                $this->addHeader('Content-disposition', ($this->format == 'download' ? 'attachment': 'inline') . '; filename=' . $filename);
                 $this->addHeader('Expires', '0');
                 $this->addHeader('Cache-Control', 'must-revalidate, post-check=0,pre-check=0');
                 $this->addHeader('Pragma', 'public');
@@ -182,6 +183,7 @@ class Response
                 echo json_encode($this->content);
             break;
             case 'download':
+            case 'push_file':
                 ob_clean();
                 flush();
                 readfile($this->content['filename']);
