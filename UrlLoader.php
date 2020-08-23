@@ -15,39 +15,43 @@ class UrlLoader
 
     function load($url, $args = [], $params = [])
     {
-        if (!empty($args))
-        {
+        if (!empty($args)) {
             $params['post'] = 1;
             $params['postfields'] = http_build_query($args);
         }
         $curlParams = [];
         foreach ($params as $pname => $pvalue) {
-            if (Str :: pos('ctl_', $pname) === 0) continue;
+            if (Str::pos('ctl_', $pname) === 0) continue;
             $curlParams[constant('CURLOPT_' . strtoupper($pname))] = $pvalue;
         }
-        $result = Curl :: fetch($url, $curlParams);
+        $result = Curl::fetch($url, $curlParams);
         $this->app->triggerEvent(new LogEvent([
             'message' => $url . ' loaded (' . strlen($result['response']) . ') in ' . $result['time'],
             'category' => 'debug/curl_load',
-            'info' => $result
+            'info' => $result,
+            'url' => $url,
+            'args' => $args,
+            'params' => $params
         ]));
         if ($result['error_num'] > 0 || !in_array($result['code'],  [200, 201, 204])) {
             $this->app->triggerEvent(new LogEvent([
                 'message' => $url . ' load failed',
                 'category' => 'debug/curl_fail',
-                'info' => $result
+                'info' => $result,
+                'url' => $url,
+                'args' => $args,
+                'params' => $params
             ]));
             if (empty($params['ctl_return_error'])) {
                 throw new CurlException($url . ' load failed', $result);
             }
         }
         return $result['response'];
-
     }
 
     function downloadFile($src, $dest)
     {
-        File :: mkdir(dirname($dest));
+        File::mkdir(dirname($dest));
 
         $fp = fopen($dest, "w");
         try {
