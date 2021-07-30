@@ -40,13 +40,13 @@ class Request
             array_shift($args);
             while (count($args) > 0) {
                 $arg = array_shift($args);
-                if (Str :: pos('-', $arg) === 0 || Str :: pos('=', $arg) !== false) {
-                    if (Str :: pos('--', $arg) === 0) {
+                if (Str::pos('-', $arg) === 0 || Str::pos('=', $arg) !== false) {
+                    if (Str::pos('--', $arg) === 0) {
                         $arg = substr($arg, 2);
-                    } elseif (Str :: pos('-', $arg) === 0) {
+                    } elseif (Str::pos('-', $arg) === 0) {
                         $arg = substr($arg, 1);
                     }
-                    if (Str :: pos('=', $arg) !== false) {
+                    if (Str::pos('=', $arg) !== false) {
                         list($k, $v) = explode('=', $arg, 2);
                     } else {
                         list($k, $v) = [$arg, true];
@@ -64,9 +64,18 @@ class Request
                 } else {
                     $this->arguments[] = $arg;
                 }
-
             }
         }
+    }
+    
+    function allGet()
+    {
+        return $this->get;
+    }
+    
+    function allPost()
+    {
+        return $this->post;
     }
 
     function export()
@@ -190,7 +199,7 @@ class Request
 
     public function hasPost()
     {
-        return $this->method === "POST";
+        return $this->method === 'POST';
     }
 
     public function isPost()
@@ -201,7 +210,7 @@ class Request
     public function isSearchBot()
     {
         $pattern = $this->app->config['app.sebot_agent_pattern'] ?? ['Googlebot', 'YandexBot'];
-        return Str :: contains($pattern, $this->getUserAgent());
+        return Str::contains($pattern, $this->getUserAgent());
     }
 
     public function getRawUrl($default = null)
@@ -236,21 +245,21 @@ class Request
     public function isFlash()
     {
         $agent = $this->getUserAgent();
-        return Str :: pos('Shockwave', $agent) !== false || Str :: pos('Flash', $agent) !== false;
+        return Str::pos('Shockwave', $agent) !== false || Str::pos('Flash', $agent) !== false;
     }
 
 
     function getFile($name)
     {
         if (isset($this->request[$name])) {
-            if (Str :: pos('url', $name) !== false) {
-                return UploadedFile :: createUrl($this->app, $this->request[$name]);
+            if (Str::pos('url', $name) !== false) {
+                return UploadedFile::createUrl($this->app, $this->request[$name]);
             } else {
-                return UploadedFile :: createXhr($this->app, $this->request[$name]);
+                return UploadedFile::createXhr($this->app, $this->request[$name]);
             }
         }
         if (isset($this->files[$name])) {
-            return UploadedFile :: createMultipart($this->app, $this->files[$name]);
+            return UploadedFile::createMultipart($this->app, $this->files[$name]);
         }
 
         $obj = new UploadedFile();
