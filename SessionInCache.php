@@ -34,7 +34,11 @@ class SessionInCache
     {
         $this->id = $this->isValidId($id) ? $id : $this->generateSessionId();
         $this->response
-            ->setCookie($this->config['name'], $this->id, $this->config['cookie_ttl'], ['httponly' => true])
+            ->setCookie($this->config['name'], $this->id, $this->config['cookie_ttl'], [
+                'httponly' => true, 
+                'secure' => $this->config['cookie_secure'] ?? false, 
+                'samesite' => $this->config['cookie_samesite'] ?? null
+            ])
             ->addHeader('Expires', 'Thu, 19 Nov 1981 08:52:00 GMT')
             ->addHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
             ->addHeader('Pragma', 'no-cache');

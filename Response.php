@@ -161,14 +161,26 @@ class Response
         }
         $domain = $this->app->config->get('app.domain');
         foreach ($this->cookies as $cookie) {
+//            setcookie(
+//                $cookie['name'],
+//                $cookie['value'],
+//                $cookie['expire'] ? time() + $cookie['expire'] * 24 * 3600 : 0,
+//                $cookie['args']['path'] ?? '/',
+//                $cookie['args']['domain'] ?? ('.' . $domain),
+//                $cookie['args']['secure'] ?? false,
+//                $cookie['args']['httponly'] ?? false
+//            );
             setcookie(
                 $cookie['name'],
                 $cookie['value'],
-                $cookie['expire'] ? time() + $cookie['expire'] * 24 * 3600 : 0,
-                $cookie['args']['path'] ?? '/',
-                $cookie['args']['domain'] ?? ('.' . $domain),
-                $cookie['args']['secure'] ?? false,
-                $cookie['args']['httponly'] ?? false
+                [
+                    'expires' => $cookie['expire'] ? time() + $cookie['expire'] * 24 * 3600 : 0,
+                    'path' => $cookie['args']['path'] ?? '/',
+                    'domain' => $cookie['args']['domain'] ?? ('.' . $domain),
+                    'secure' => $cookie['args']['secure'] ?? false,
+                    'httponly' => $cookie['args']['httponly'] ?? false,
+                    'samesite' => $cookie['args']['samesite'] ?? null,
+                ]
             );
         }
         foreach ($this->headers as $header) {
