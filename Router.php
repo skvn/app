@@ -37,6 +37,9 @@ class Router
 
     function run($url)
     {
+        if (is_null($url)) {
+            $url = '';
+        }
         $routed = [];
         foreach ($this->routes as $route) {
             if ($route['method'] != '*' && $route['method'] != $this->app->request->getMethod()) {
