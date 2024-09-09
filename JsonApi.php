@@ -92,7 +92,8 @@ class JsonApi
         $result = $this->app->urlLoader->load($url, [], [
             'post' => 1,
             'postfields' => $data,
-            'ctl_return_error' => true
+            'ctl_return_error' => true,
+            'timeout' => $this->config['call_timeout'] ?? 30
         ]);
         $response = json_decode($result, true);
         $this->log([
