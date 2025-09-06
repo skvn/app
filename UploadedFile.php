@@ -37,7 +37,6 @@ class UploadedFile
         try {
             $content = $this->app->urlLoader->load($url, [], [
                 'header' => 0,
-                'binarytransfer' => 1,
                 'followlocation' => 1,
             ]);
         } catch (\Exception $e) {
