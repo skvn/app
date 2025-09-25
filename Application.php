@@ -30,7 +30,7 @@ class Application extends Container
     protected $services = [];
 
 
-    function init($path, $mode = null)
+    public function init($path, $mode = null)
     {
         $this->rootPath = $path;
         chdir($this->rootPath);
@@ -43,15 +43,14 @@ class Application extends Container
         $this->pathAliases['@root'] = $this->rootPath;
         $this->initApp();
         $this->bindAppEvents();
-
     }
 
-    function initApp()
+    public function initApp()
     {
 
     }
 
-    function bindAppEvents()
+    public function bindAppEvents()
     {
 
     }
@@ -83,7 +82,7 @@ class Application extends Container
         return true;
     }
 
-    function run()
+    public function run()
     {
         $data = ['app' => $this, 'request' => $this->request, 'response' => $this->response];
         try {
@@ -107,7 +106,7 @@ class Application extends Container
         $this->triggerEvent(new Events\Shutdown($data));
     }
 
-    function bindEvent($event, $handler, $modes = null, $prepend = false)
+    public function bindEvent($event, $handler, $modes = null, $prepend = false)
     {
         if (!$this->checkMode($modes)) {
             return;
@@ -121,7 +120,7 @@ class Application extends Container
         return $this->events->listen($event, $handler, $prepend);
     }
 
-    function get($alias)
+    public function get($alias)
     {
         if (!isset($this->aliases[$alias])) {
             return $this->getAppService($alias);
@@ -129,17 +128,17 @@ class Application extends Container
         return $this->aliases[$alias];
     }
 
-    function execCommand(Event $command)
+    public function execCommand(Event $command)
     {
         return $this->events->trigger($command, true);
     }
 
-    function triggerEvent(Event $event)
+    public function triggerEvent(Event $event)
     {
         return $this->events->trigger($event);
     }
 
-    function checkMode($modes)
+    protected function checkMode($modes)
     {
         if (is_null($modes) || $modes == '*') {
             return true;
@@ -163,25 +162,25 @@ class Application extends Container
         return true;
     }
 
-    function createFacade($target, $alias)
+    public function createFacade($target, $alias)
     {
         $code = 'class ' . $alias . ' extends \\Skvn\\Base\\Facade {protected static function getFacadeTarget() {return "' . $target . '";}}';
         eval($code);
     }
 
-    function registerClassAlias($class, $alias)
+    public function registerClassAlias($class, $alias)
     {
         class_alias($class, '\\' . $alias);
     }
 
-    function registerFacades()
+    public function registerFacades()
     {
         foreach (array_merge($this->getAppFacades(), $this->config['app.facades'] ?? []) as $alias => $class) {
             $this->registerClassAlias($class, $alias);
         }
     }
 
-    function registerPath($name, $path)
+    public function registerPath($name, $path)
     {
         if (Str::pos(DIRECTORY_SEPARATOR, $path) !== 0) {
             $path = $this->rootPath . DIRECTORY_SEPARATOR . $path;
@@ -193,14 +192,14 @@ class Application extends Container
         return $path;
     }
 
-    function registerPaths()
+    public function registerPaths()
     {
         foreach ($this->config['app.paths'] as $alias => $path) {
             $this->registerPath($alias, $path);
         }
     }
 
-    function getPath($path)
+    public function getPath($path)
     {
         if (Str :: pos('@', $path) === 0) {
             $pos = Str::pos(DIRECTORY_SEPARATOR, $path);
@@ -213,18 +212,18 @@ class Application extends Container
         return $path;
     }
 
-    function getMode()
+    public function getMode()
     {
         return $this->appMode;
     }
 
-    function registerCommandNamespace($namespace, $path)
+    public function registerCommandNamespace($namespace, $path)
     {
         $this->commandNamespaces[$namespace] = $path;
         return $this;
     }
 
-    function createCommand($command, $args = [])
+    public function createCommand($command, $args = [])
     {
         if (Str::pos('/', $command) !== false) {
             list($controller, $action) = explode('/', $command);
@@ -242,7 +241,7 @@ class Application extends Container
 
     }
 
-    function getAvailableCommands()
+    public function getAvailableCommands()
     {
         $commands = [];
         foreach ($this->commandNamespaces as $ns => $path) {
@@ -258,17 +257,22 @@ class Application extends Container
         return $commands;
     }
 
-    function filterScheduledEntry($entry)
+    public function filterScheduledEntry($entry)
     {
         return true;
     }
 
-    function appendScheduledEntries($entries)
+    public function appendScheduledEntries($entries)
     {
         return $entries;
     }
+    
+    public function getClusterHost($host)
+    {
+        return intval($host);
+    }
 
-    function getAppServices()
+    public function getAppServices()
     {
         return array_merge([
             'config' => \Skvn\Base\Config::class,
@@ -281,7 +285,7 @@ class Application extends Container
         ], $this->services);
     }
 
-    function getAppService($service)
+    public function getAppService($service)
     {
         $services = $this->getAppServices();
         if (array_key_exists($service, $services)) {
@@ -304,7 +308,7 @@ class Application extends Container
         throw new NotFoundException('Service ' . $service . ' not found');
     }
 
-    function getAppFacades()
+    public function getAppFacades()
     {
         return [
             'App' => Facades\App::class,
@@ -319,11 +323,4 @@ class Application extends Container
             'RedisDB' => Facades\RedisDB::class,
         ];
     }
-
-
-
-
-
-
-
 }
