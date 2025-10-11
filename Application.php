@@ -13,9 +13,11 @@ use Skvn\Base\Helpers\File;
 
 /**
  * Class Application
+ *
  * @package Skvn\App
- * 
+ *
  * @property \Skvn\Event\EventDispatcher $events
+ * @property \Skvn\Cluster\Cluster $cluster
  */
 class Application extends Container
 {
